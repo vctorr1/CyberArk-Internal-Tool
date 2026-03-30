@@ -1,0 +1,251 @@
+<Window x:Class="CyberArkManager.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:views="clr-namespace:CyberArkManager.Views"
+        xmlns:vm="clr-namespace:CyberArkManager.ViewModels"
+        Title="CyberArk Manager — Navaja Suiza PAM"
+        Height="750" Width="1200"
+        MinHeight="600" MinWidth="900"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource MaterialDesign.Brush.Background}"
+        TextElement.Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
+        FontFamily="{materialDesign:MaterialDesignFont}"
+        Style="{StaticResource MaterialDesignWindow}">
+
+    <Grid>
+        <!-- ══════════════════════════════════════════════════════════════ -->
+        <!-- LOGIN OVERLAY (shown when not authenticated)                   -->
+        <!-- ══════════════════════════════════════════════════════════════ -->
+        <Grid Visibility="{Binding IsLoginView, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <views:LoginView DataContext="{Binding LoginVM}" />
+        </Grid>
+
+        <!-- ══════════════════════════════════════════════════════════════ -->
+        <!-- MAIN SHELL (shown when authenticated)                          -->
+        <!-- ══════════════════════════════════════════════════════════════ -->
+        <Grid Visibility="{Binding IsMainView, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220" />   <!-- Sidebar -->
+                <ColumnDefinition Width="*" />     <!-- Content -->
+            </Grid.ColumnDefinitions>
+
+            <!-- ── SIDEBAR ─────────────────────────────────────────────── -->
+            <Border Grid.Column="0"
+                    Background="{StaticResource SidebarBgBrush}">
+                <DockPanel>
+                    <!-- Logo / App Title -->
+                    <StackPanel DockPanel.Dock="Top" Margin="16,20,16,12">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <materialDesign:PackIcon Kind="ShieldLock"
+                                                     Width="28" Height="28"
+                                                     Foreground="{StaticResource AccentTealBrush}"
+                                                     VerticalAlignment="Center" />
+                            <TextBlock Text="CyberArk"
+                                       FontSize="18" FontWeight="Bold"
+                                       Foreground="White"
+                                       Margin="8,0,0,0"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="PAM Manager"
+                                   FontSize="11"
+                                   Foreground="#8888AA"
+                                   Margin="36,0,0,0" />
+
+                        <Separator Margin="0,16,0,4"
+                                   Background="#33FFFFFF" />
+                    </StackPanel>
+
+                    <!-- Session Info -->
+                    <Border DockPanel.Dock="Bottom"
+                            Background="#11FFFFFF"
+                            Padding="14,10">
+                        <StackPanel>
+                            <Separator Background="#33FFFFFF" Margin="0,0,0,8" />
+
+                            <!-- User info -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <materialDesign:PackIcon Kind="AccountCircle"
+                                                         Foreground="{StaticResource AccentTealBrush}"
+                                                         Width="16" Height="16"
+                                                         VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding CurrentUser}"
+                                           Foreground="White"
+                                           FontWeight="SemiBold"
+                                           FontSize="12"
+                                           Margin="6,0,0,0"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+
+                            <!-- Session duration -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                <materialDesign:PackIcon Kind="Timer"
+                                                         Foreground="#8888AA"
+                                                         Width="13" Height="13"
+                                                         VerticalAlignment="Center" />
+                                <TextBlock Foreground="#8888AA" FontSize="10" Margin="5,0,0,0">
+                                    <Run Text="Sesión:" />
+                                    <Run Text="{Binding SessionDuration}" FontWeight="SemiBold" Foreground="#AAAACC" />
+                                </TextBlock>
+                            </StackPanel>
+
+                            <!-- Last renewal -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <materialDesign:PackIcon Kind="Refresh"
+                                                         Foreground="#8888AA"
+                                                         Width="13" Height="13"
+                                                         VerticalAlignment="Center" />
+                                <TextBlock Foreground="#8888AA" FontSize="10" Margin="5,0,0,0">
+                                    <Run Text="Renovado:" />
+                                    <Run Text="{Binding LastRenewal}" FontWeight="SemiBold" Foreground="#AAAACC" />
+                                </TextBlock>
+                            </StackPanel>
+
+                            <!-- Logoff button -->
+                            <Button Command="{Binding LogoffCommand}"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Height="32"
+                                    Foreground="{StaticResource DangerRedBrush}"
+                                    BorderBrush="{StaticResource DangerRedBrush}"
+                                    FontSize="11">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Logout" Width="14" Height="14" VerticalAlignment="Center"/>
+                                    <TextBlock Text=" Cerrar Sesión" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Navigation Buttons -->
+                    <StackPanel DockPanel.Dock="Top" Margin="8,0">
+                        <!-- Section label -->
+                        <TextBlock Text="HERRAMIENTAS"
+                                   FontSize="9"
+                                   Foreground="#555577"
+                                   FontWeight="Bold"
+                                   Margin="8,8,0,4"
+                                   LetterSpacing="1" />
+
+                        <!-- CSV Generator -->
+                        <Button Style="{Binding IsCsvView, Converter={StaticResource BooleanToObjectConverter},
+                                        ConverterParameter='SideNavButtonActive|SideNavButton'}"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="CsvGenerator">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="FileDelimited"
+                                                         Width="18" Height="18"
+                                                         VerticalAlignment="Center" />
+                                <TextBlock Text="  Generador CSV" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Account Management -->
+                        <Button Style="{Binding IsAccountView, Converter={StaticResource BooleanToObjectConverter},
+                                        ConverterParameter='SideNavButtonActive|SideNavButton'}"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="AccountManagement">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="AccountKey"
+                                                         Width="18" Height="18"
+                                                         VerticalAlignment="Center" />
+                                <TextBlock Text="  Gestión de Cuentas" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Divider -->
+                        <Separator Margin="8,12" Background="#22FFFFFF" />
+
+                        <TextBlock Text="RELOJ"
+                                   FontSize="9"
+                                   Foreground="#555577"
+                                   FontWeight="Bold"
+                                   Margin="8,0,0,4" />
+                        <TextBlock Text="{Binding CurrentTime}"
+                                   FontSize="22"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource AccentTealBrush}"
+                                   Margin="16,4,0,0"
+                                   FontFamily="Consolas" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- ── CONTENT AREA ────────────────────────────────────────── -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Page content -->
+                <ContentControl Grid.Row="0">
+                    <ContentControl.Style>
+                        <Style TargetType="ContentControl">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentView}" Value="CsvGenerator">
+                                    <Setter Property="Content">
+                                        <Setter.Value>
+                                            <views:CsvGeneratorView DataContext="{Binding DataContext.CsvVM,
+                                                RelativeSource={RelativeSource AncestorType=Window}}" />
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentView}" Value="AccountManagement">
+                                    <Setter Property="Content">
+                                        <Setter.Value>
+                                            <views:AccountManagementView DataContext="{Binding DataContext.AccountVM,
+                                                RelativeSource={RelativeSource AncestorType=Window}}" />
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ContentControl.Style>
+                </ContentControl>
+
+                <!-- Status Bar -->
+                <Border Grid.Row="1"
+                        Background="#111122"
+                        BorderThickness="0,1,0,0"
+                        BorderBrush="#222244"
+                        Padding="12,4">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Status message -->
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding StatusMessage}"
+                                   Style="{StaticResource StatusText}"
+                                   Foreground="{Binding HasError, Converter={StaticResource BooleanToObjectConverter},
+                                               ConverterParameter='#F44336|#AAAAAA'}" />
+
+                        <!-- Version -->
+                        <TextBlock Grid.Column="1"
+                                   Text="v1.0.0 — CyberArk Manager"
+                                   Style="{StaticResource StatusText}"
+                                   Foreground="#444466" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- Global loading overlay -->
+        <Border Background="#88000000"
+                Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                             Width="48" Height="48"
+                             IsIndeterminate="True"
+                             Foreground="{StaticResource AccentTealBrush}" />
+                <TextBlock Text="Procesando..."
+                           Foreground="White"
+                           Margin="0,12,0,0"
+                           HorizontalAlignment="Center"
+                           FontSize="13" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
