@@ -1,4 +1,4 @@
-<UserControl x:Class="CyberArkManager.Views.SafesView"
+﻿<UserControl x:Class="CyberArkManager.Views.SafesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes">
@@ -81,20 +81,20 @@
                 <TabControl Style="{StaticResource MaterialDesignTabControl}">
 
                     <!-- Crear/Editar Safe -->
-                    <TabItem Header="📁 Safe">
+                    <TabItem Header="Safe">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="14">
                             <StackPanel>
                                 <TextBlock Text="CREAR / EDITAR SAFE" FontSize="9" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10"/>
                                 <TextBox Text="{Binding NewName,  UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Nombre del Safe *"    md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,8" FontSize="12"/>
                                 <TextBox Text="{Binding NewDesc,  UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Descripción"           md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,8" FontSize="12"/>
-                                <TextBox Text="{Binding NewCpm,   UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Managing CPM"          md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,8" FontSize="12"/>
+                                <TextBox Text="{Binding NewCpm,   UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="CPM responsable"          md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,8" FontSize="12"/>
                                 <TextBox Text="{Binding NewLoc,   UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Ubicación (\\Folder)"  md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,8" FontSize="12"/>
                                 <Grid Margin="0,0,0,8">
                                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
                                     <TextBox Grid.Column="0" Text="{Binding NewVersions}" md:HintAssist.Hint="Versiones" md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,6,0" FontSize="12"/>
                                     <TextBox Grid.Column="1" Text="{Binding NewDays}"     md:HintAssist.Hint="Días retención" md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="12"/>
                                 </Grid>
-                                <CheckBox Content="Auto Purge habilitado" IsChecked="{Binding NewAutoPurge}" Foreground="#9999BB" Margin="0,0,0,6" FontSize="11"/>
+                                <CheckBox Content="Purgado automático habilitado" IsChecked="{Binding NewAutoPurge}" Foreground="#9999BB" Margin="0,0,0,6" FontSize="11"/>
                                 <CheckBox Content="OLAC habilitado"       IsChecked="{Binding NewOlac}"      Foreground="#9999BB" Margin="0,0,0,12" FontSize="11"/>
                                 <WrapPanel>
                                     <Button Command="{Binding CreateCommand}" Height="34" FontSize="11" Margin="0,0,6,0" Background="{StaticResource AccentBrush}" BorderBrush="{StaticResource AccentBrush}" Style="{StaticResource MaterialDesignRaisedButton}">
@@ -112,7 +112,7 @@
                     </TabItem>
 
                     <!-- Miembros -->
-                    <TabItem Header="👥 Miembros">
+                    <TabItem Header="Miembros">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="14">
                             <StackPanel>
                                 <TextBlock Text="AÑADIR MIEMBRO" FontSize="9" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10"/>
@@ -123,7 +123,7 @@
                                 <CheckBox Content="Listar cuentas"            IsChecked="{Binding PermList}"   Foreground="#9999BB" FontSize="11" Margin="0,0,0,4"/>
                                 <CheckBox Content="Añadir cuentas"            IsChecked="{Binding PermAdd}"    Foreground="#9999BB" FontSize="11" Margin="0,0,0,4"/>
                                 <CheckBox Content="Eliminar cuentas"          IsChecked="{Binding PermDelete}" Foreground="#9999BB" FontSize="11" Margin="0,0,0,4"/>
-                                <CheckBox Content="Usar / retrieve cuentas"   IsChecked="{Binding PermUse}"    Foreground="#9999BB" FontSize="11" Margin="0,0,0,4"/>
+                                <CheckBox Content="Usar / recuperar cuentas"   IsChecked="{Binding PermUse}"    Foreground="#9999BB" FontSize="11" Margin="0,0,0,4"/>
                                 <CheckBox Content="Ver auditoría y miembros"  IsChecked="{Binding PermView}"   Foreground="#9999BB" FontSize="11" Margin="0,0,0,12"/>
                                 <WrapPanel>
                                     <Button Command="{Binding AddMemberCommand}" Height="34" FontSize="11" Margin="0,0,6,0" Background="{StaticResource AccentBrush}" BorderBrush="{StaticResource AccentBrush}" Style="{StaticResource MaterialDesignRaisedButton}">
@@ -145,3 +145,4 @@
                    Visibility="{Binding StatusMessage, Converter={StaticResource NullToVis}}"/>
     </Grid>
 </UserControl>
+

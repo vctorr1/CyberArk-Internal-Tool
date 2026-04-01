@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using CyberArkManager.Helpers;
 using CyberArkManager.Models;
 using CyberArkManager.Services;
@@ -168,7 +168,7 @@ public class MainViewModel : BaseViewModel, IDisposable
         IsAuth = true;
         IsLocalMode = session.IsLocalMode;
         CurrentUser = session.IsLocalMode
-            ? $"{session.Username} (Local)"
+            ? $"{session.Username} (modo local)"
             : session.Username;
 
         AccountsVM = new AccountsViewModel(_api);
@@ -262,13 +262,13 @@ public class MainViewModel : BaseViewModel, IDisposable
         var session = _auth.CurrentSession;
         if (session is null)
         {
-            SessionTime = IsLocalMode ? "Local" : string.Empty;
-            LastRenewTime = IsLocalMode ? "N/A" : string.Empty;
+            SessionTime = IsLocalMode ? "Modo local" : string.Empty;
+            LastRenewTime = IsLocalMode ? "No aplica" : string.Empty;
             return;
         }
 
-        SessionTime = session.IsLocalMode ? "Local" : session.DurationDisplay;
-        LastRenewTime = session.IsLocalMode ? "N/A" : session.LastRenew.ToString("HH:mm:ss");
+        SessionTime = session.IsLocalMode ? "Modo local" : session.DurationDisplay;
+        LastRenewTime = session.IsLocalMode ? "No aplica" : session.LastRenew.ToString("HH:mm:ss");
     }
 
     private void StartClock()
@@ -302,3 +302,4 @@ public class MainViewModel : BaseViewModel, IDisposable
         _auth.Dispose();
     }
 }
+

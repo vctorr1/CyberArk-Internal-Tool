@@ -16,7 +16,7 @@ public class Safe
     [JsonPropertyName("olacEnabled")]            public bool OlacEnabled           { get; set; }
     [JsonPropertyName("creationTime")]           public long CreationTime          { get; set; }
     [JsonPropertyName("creator")]                public SafeCreator? Creator       { get; set; }
-    public string CreationDisplay => CreationTime > 0 ? DateTimeOffset.FromUnixTimeSeconds(CreationTime).LocalDateTime.ToString("dd/MM/yyyy") : "â€”";
+    public string CreationDisplay => CreationTime > 0 ? DateTimeOffset.FromUnixTimeSeconds(CreationTime).LocalDateTime.ToString("dd/MM/yyyy") : "-";
     public override string ToString() => SafeName;
 }
 
@@ -58,7 +58,7 @@ public class SafeMember
     [JsonPropertyName("isPredefinedUser")]   public bool IsPredefinedUser { get; set; }
     [JsonPropertyName("permissions")]        public SafePermissions? Permissions { get; set; }
     public string ExpirationDisplay => MembershipExpirationDate.HasValue
-        ? DateTimeOffset.FromUnixTimeSeconds(MembershipExpirationDate.Value).LocalDateTime.ToString("dd/MM/yyyy") : "Sin expiraciÃ³n";
+        ? DateTimeOffset.FromUnixTimeSeconds(MembershipExpirationDate.Value).LocalDateTime.ToString("dd/MM/yyyy") : "Sin expiración";
 }
 
 public class SafePermissions
@@ -94,7 +94,6 @@ public class SafeMembersResponse
     [JsonPropertyName("nextLink")] public string? NextLink        { get; set; }
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// USERS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// Tipos y DTOs relacionados con safes y miembros.
+
 

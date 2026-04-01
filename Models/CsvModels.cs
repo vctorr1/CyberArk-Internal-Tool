@@ -119,7 +119,7 @@ public class ProcessedCsvRecord
     public bool IsEncrypted { get; set; }
 
     public string CreatedAtDisplay => CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss");
-    public string StorageDisplay => IsEncrypted ? "Encrypted local snapshot" : "Legacy plain CSV";
+    public string StorageDisplay => IsEncrypted ? "Instantánea local cifrada" : "CSV plano heredado";
 }
 
 public class BulkUploadResult
@@ -160,12 +160,12 @@ public sealed class LinkedAccountTypeOption
             new LinkedAccountTypeOption
             {
                 Type = LinkedAccountType.Logon,
-                DisplayName = "Logon account"
+                DisplayName = "Cuenta de logon"
             },
             new LinkedAccountTypeOption
             {
                 Type = LinkedAccountType.Reconcile,
-                DisplayName = "Reconciliation account"
+                DisplayName = "Cuenta de reconciliación"
             }
         };
 }
@@ -191,3 +191,4 @@ public sealed class LinkedAccountBatchResult
     public List<string> Errors { get; set; } = new();
     public bool HasErrors => FailedServers > 0;
 }
+

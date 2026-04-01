@@ -6,7 +6,7 @@ using CyberArkManager.Services;
 
 namespace CyberArkManager.ViewModels;
 
-/// <summary>Individual field that the user can choose to patch.</summary>
+/// <summary>Campo individual que el usuario puede seleccionar para el PATCH.</summary>
 public class EditableField : BaseViewModel
 {
     bool _selected; string _value = "";
@@ -23,17 +23,17 @@ public class AccountsViewModel : BaseViewModel
     public AccountsViewModel(CyberArkApiService api)
     {
         _api = api;
-        // Build editable fields catalogue
+        // Catálogo de campos editables.
         EditableFields = new ObservableCollection<EditableField>(new[]
         {
-            new EditableField { ApiPath = "/address",    Label = "Address (dirección/host)" },
-            new EditableField { ApiPath = "/userName",   Label = "User Name (usuario)" },
-            new EditableField { ApiPath = "/platformId", Label = "Platform ID" },
-            new EditableField { ApiPath = "/name",       Label = "Account Name (nombre)" },
-            new EditableField { ApiPath = "/secretManagement/automaticManagementEnabled", Label = "Auto Management (true/false)" },
-            new EditableField { ApiPath = "/secretManagement/manualManagementReason",     Label = "Manual Management Reason" },
-            new EditableField { ApiPath = "/remoteMachinesAccess/remoteMachines",         Label = "Remote Machines" },
-            new EditableField { ApiPath = "/remoteMachinesAccess/accessRestrictedToRemoteMachines", Label = "Restrict Remote Access (true/false)" },
+            new EditableField { ApiPath = "/address",    Label = "Dirección o host" },
+            new EditableField { ApiPath = "/userName",   Label = "Nombre de usuario" },
+            new EditableField { ApiPath = "/platformId", Label = "ID de plataforma" },
+            new EditableField { ApiPath = "/name",       Label = "Nombre de la cuenta" },
+            new EditableField { ApiPath = "/secretManagement/automaticManagementEnabled", Label = "Gestión automática (true/false)" },
+            new EditableField { ApiPath = "/secretManagement/manualManagementReason",     Label = "Motivo de gestión manual" },
+            new EditableField { ApiPath = "/remoteMachinesAccess/remoteMachines",         Label = "Máquinas remotas" },
+            new EditableField { ApiPath = "/remoteMachinesAccess/accessRestrictedToRemoteMachines", Label = "Restringir acceso remoto (true/false)" },
         });
 
         LoadCommand          = new AsyncRelayCommand(LoadAsync);
@@ -161,7 +161,7 @@ public class AccountsViewModel : BaseViewModel
         if (string.IsNullOrWhiteSpace(NewAddress) || string.IsNullOrWhiteSpace(NewUserName) ||
             string.IsNullOrWhiteSpace(NewPlatformId) || string.IsNullOrWhiteSpace(NewSafeName))
         {
-            SetStatus("⚠ Address, UserName, PlatformID y SafeName son obligatorios.", true); return;
+            SetStatus("⚠ Dirección, nombre de usuario, ID de plataforma y safe son obligatorios.", true); return;
         }
         IsBusy = true;
         try
@@ -275,7 +275,7 @@ public class AccountsViewModel : BaseViewModel
     {
         if (SelectedAccount is null) return;
         IsBusy = true;
-        try { await _api.CheckOutAsync(SelectedAccount.Id, OperationReason); SetStatus("✔ Check-out realizado."); }
+        try { await _api.CheckOutAsync(SelectedAccount.Id, OperationReason); SetStatus("✔ Retirada realizada."); }
         catch (Exception ex) { SetStatus($"✖ {ex.Message}", true); }
         finally { IsBusy = false; }
     }
@@ -284,7 +284,7 @@ public class AccountsViewModel : BaseViewModel
     {
         if (SelectedAccount is null) return;
         IsBusy = true;
-        try { await _api.CheckInAsync(SelectedAccount.Id); SetStatus("✔ Check-in realizado."); }
+        try { await _api.CheckInAsync(SelectedAccount.Id); SetStatus("✔ Devolución realizada."); }
         catch (Exception ex) { SetStatus($"✖ {ex.Message}", true); }
         finally { IsBusy = false; }
     }

@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CyberArkManager.Helpers;
 using CyberArkManager.Models;
 
@@ -8,7 +8,7 @@ public class CsvPreviewWindowViewModel : BaseViewModel
 {
     public CsvPreviewWindowViewModel(IEnumerable<CsvAccountRow> rows, string title)
     {
-        Title = string.IsNullOrWhiteSpace(title) ? "CSV Preview" : title;
+        Title = string.IsNullOrWhiteSpace(title) ? "Vista previa CSV" : title;
         Rows = new ObservableCollection<CsvAccountRow>(rows);
     }
 
@@ -16,3 +16,4 @@ public class CsvPreviewWindowViewModel : BaseViewModel
     public ObservableCollection<CsvAccountRow> Rows { get; }
     public int RowCount => Rows.Count;
 }
+

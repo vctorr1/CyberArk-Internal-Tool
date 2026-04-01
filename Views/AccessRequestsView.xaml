@@ -1,4 +1,4 @@
-<UserControl x:Class="CyberArkManager.Views.AccessRequestsView"
+﻿<UserControl x:Class="CyberArkManager.Views.AccessRequestsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes">
@@ -17,7 +17,7 @@
             <Grid Grid.Column="0" Margin="0,0,10,0">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                 <Button Grid.Row="0" Command="{Binding LoadCommand}" Height="34" FontSize="11" Margin="0,0,0,10" Background="{StaticResource AccentBrush}" BorderBrush="{StaticResource AccentBrush}" Style="{StaticResource MaterialDesignRaisedButton}" HorizontalAlignment="Left">
-                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Refresh" Width="14" Height="14" VerticalAlignment="Center"/><TextBlock Text=" Cargar Mis Solicitudes" VerticalAlignment="Center"/></StackPanel>
+                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Refresh" Width="14" Height="14" VerticalAlignment="Center"/><TextBlock Text=" Cargar mis solicitudes" VerticalAlignment="Center"/></StackPanel>
                 </Button>
                 <Border Grid.Row="1" Style="{StaticResource Card}">
                     <DataGrid ItemsSource="{Binding Requests}" SelectedItem="{Binding SelectedRequest}"
@@ -26,7 +26,7 @@
                               RowBackground="#1A1A2E" AlternatingRowBackground="#16162A"
                               BorderThickness="0" Style="{StaticResource MaterialDesignDataGrid}">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Requestor"   Binding="{Binding RequestorUserName}" Width="130"/>
+                            <DataGridTextColumn Header="Solicitante"   Binding="{Binding RequestorUserName}" Width="130"/>
                             <DataGridTextColumn Header="Safe"        Binding="{Binding SafeName}"          Width="130"/>
                             <DataGridTextColumn Header="Operación"   Binding="{Binding Operation}"         Width="100"/>
                             <DataGridTextColumn Header="Estado"      Binding="{Binding StatusTitle}"       Width="100"/>
@@ -62,3 +62,4 @@
                    Visibility="{Binding StatusMessage, Converter={StaticResource NullToVis}}"/>
     </Grid>
 </UserControl>
+

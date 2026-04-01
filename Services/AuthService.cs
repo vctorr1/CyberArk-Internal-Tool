@@ -1,4 +1,4 @@
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
@@ -66,7 +66,7 @@ public class AuthService : IDisposable
         StartTimers(heartbeatMin);
 
         LogContext.Information("Session started. User={User} HardExpiry={Expiry}", username, _session.HardExpiry);
-        StatusMessage?.Invoke(this, $"Session started: {username}");
+        StatusMessage?.Invoke(this, $"Sesión iniciada: {username}");
         return _session;
     }
 
@@ -100,7 +100,7 @@ public class AuthService : IDisposable
         StartTimers(heartbeatMin);
 
         LogContext.Information("Windows session started. User={User}", Environment.UserName);
-        StatusMessage?.Invoke(this, $"Windows session started: {Environment.UserName}");
+        StatusMessage?.Invoke(this, $"Sesión de Windows iniciada: {Environment.UserName}");
         return _session;
     }
 
@@ -126,7 +126,7 @@ public class AuthService : IDisposable
         _session.Invalidate();
         ClearSecurePassword();
         _http.DefaultRequestHeaders.Remove("Authorization");
-        StatusMessage?.Invoke(this, "Session closed");
+        StatusMessage?.Invoke(this, "Sesión cerrada");
     }
 
     private void StartTimers(int heartbeatMinutes)
@@ -177,7 +177,7 @@ public class AuthService : IDisposable
                 _session.LastRenew = DateTime.Now;
                 _consecutiveFailures = 0;
                 SessionRenewed?.Invoke(this, _session.Token);
-                StatusMessage?.Invoke(this, $"Session extended at {DateTime.Now:HH:mm:ss}");
+                StatusMessage?.Invoke(this, $"Sesión renovada a las {DateTime.Now:HH:mm:ss}");
                 return;
             }
 
@@ -192,7 +192,7 @@ public class AuthService : IDisposable
                     _consecutiveFailures = 0;
                     ApplyToken(token);
                     SessionRenewed?.Invoke(this, token);
-                    StatusMessage?.Invoke(this, $"Token renewed at {DateTime.Now:HH:mm:ss}");
+                    StatusMessage?.Invoke(this, $"Token renovado a las {DateTime.Now:HH:mm:ss}");
                 }
                 finally
                 {
@@ -204,7 +204,7 @@ public class AuthService : IDisposable
         {
             _consecutiveFailures++;
             LogContext.Warning(ex, "Heartbeat failed ({Current}/{Max}). User={User}", _consecutiveFailures, MaxConsecutiveFailures, _session?.Username);
-            StatusMessage?.Invoke(this, $"Keep-alive failed ({_consecutiveFailures}/{MaxConsecutiveFailures})");
+            StatusMessage?.Invoke(this, $"Falló la renovación automática ({_consecutiveFailures}/{MaxConsecutiveFailures})");
 
             if (_consecutiveFailures >= MaxConsecutiveFailures)
             {
@@ -226,7 +226,7 @@ public class AuthService : IDisposable
         ClearSecurePassword();
         _http.DefaultRequestHeaders.Remove("Authorization");
         SessionExpired?.Invoke(this, EventArgs.Empty);
-        StatusMessage?.Invoke(this, "Session expired. Please sign in again.");
+        StatusMessage?.Invoke(this, "La sesión ha expirado. Vuelve a iniciar sesión.");
         return Task.CompletedTask;
     }
 
@@ -265,7 +265,7 @@ public class AuthService : IDisposable
         var token = (await response.Content.ReadAsStringAsync(ct)).Trim('"');
         if (string.IsNullOrWhiteSpace(token))
         {
-            throw new InvalidOperationException("The server returned an empty token.");
+            throw new InvalidOperationException("El servidor devolvió un token vacío.");
         }
 
         return token;
@@ -327,10 +327,10 @@ public class AuthService : IDisposable
     {
         var prefix = code switch
         {
-            401 => "Unauthorized",
-            403 => "Forbidden",
-            404 => "Not found",
-            409 => "Conflict",
+            401 => "No autorizado",
+            403 => "Acceso denegado",
+            404 => "No encontrado",
+            409 => "Conflicto",
             _ => $"HTTP {code}"
         };
 
@@ -394,3 +394,4 @@ public class AuthService : IDisposable
         public bool ConcurrentSession { get; set; }
     }
 }
+

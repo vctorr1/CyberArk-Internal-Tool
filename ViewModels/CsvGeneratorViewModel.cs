@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
@@ -389,7 +389,7 @@ public class CsvGeneratorViewModel : BaseViewModel
     {
         if (SelectedProcessedCsv is null)
         {
-            SetStatus("Selecciona un snapshot procesado para cargar.", true);
+            SetStatus("Selecciona una instantánea procesada para cargar.", true);
             return;
         }
 
@@ -399,7 +399,7 @@ public class CsvGeneratorViewModel : BaseViewModel
         {
             var rows = await _archiveService.LoadRowsAsync(SelectedProcessedCsv, ct);
             ReplaceRows(rows);
-            SetStatus($"Snapshot '{SelectedProcessedCsv.Label}' cargado en la preview.");
+            SetStatus($"Instantánea '{SelectedProcessedCsv.Label}' cargada en la vista previa.");
         }
         catch (Exception ex)
         {
@@ -416,7 +416,7 @@ public class CsvGeneratorViewModel : BaseViewModel
     {
         if (SelectedProcessedCsv is null)
         {
-            SetStatus("Selecciona un snapshot procesado para exportar.", true);
+            SetStatus("Selecciona una instantánea procesada para exportar.", true);
             return;
         }
 
@@ -424,7 +424,7 @@ public class CsvGeneratorViewModel : BaseViewModel
         try
         {
             await _archiveService.ExportSnapshotAsync(SelectedProcessedCsv, filePath, ct);
-            SetStatus($"Snapshot exportado: {Path.GetFileName(filePath)}");
+            SetStatus($"Instantánea exportada: {Path.GetFileName(filePath)}");
         }
         catch (Exception ex)
         {
@@ -452,7 +452,7 @@ public class CsvGeneratorViewModel : BaseViewModel
 
     async Task ExportAsync(object? _)
     {
-        var filePath = _dialogService.PickCsvExportPath($"CyberArk_BulkLoad_{DateTime.Now:yyyyMMdd_HHmm}.csv");
+        var filePath = _dialogService.PickCsvExportPath($"CyberArk_CargaMasiva_{DateTime.Now:yyyyMMdd_HHmm}.csv");
         if (string.IsNullOrWhiteSpace(filePath))
         {
             return;
@@ -534,7 +534,7 @@ public class CsvGeneratorViewModel : BaseViewModel
                     Log.Add($"OK [{report.Current}/{report.Total}] {report.AccountLabel}");
                     if (row is not null)
                     {
-                        row.StatusText = "OK";
+                        row.StatusText = "Correcto";
                         row.StatusColor = "#4CAF50";
                     }
                 }
@@ -774,7 +774,7 @@ public class CsvGeneratorViewModel : BaseViewModel
     {
         var source = SelectedProfile ?? AccountProfiles.FirstOrDefault();
         var row = source is not null ? CsvService.CloneRow(source) : CreateDraftRow();
-        row.StatusText = "Draft";
+        row.StatusText = "Borrador";
         row.StatusColor = "#9FE8F2";
         Rows.Add(row);
         SelectedRow = row;
@@ -832,7 +832,7 @@ public class CsvGeneratorViewModel : BaseViewModel
             return;
         }
 
-        _previewService.ShowPreview(Rows, string.IsNullOrWhiteSpace(TemplateName) ? "CSV Preview" : $"Preview - {TemplateName}");
+        _previewService.ShowPreview(Rows, string.IsNullOrWhiteSpace(TemplateName) ? "Vista previa CSV" : $"Vista previa - {TemplateName}");
     }
 
     void ReplaceRows(IEnumerable<CsvAccountRow> rows)
@@ -861,7 +861,7 @@ public class CsvGeneratorViewModel : BaseViewModel
         foreach (var profile in profiles)
         {
             var normalized = CsvService.CloneRow(profile);
-            normalized.StatusText = "Template";
+            normalized.StatusText = "Plantilla";
             normalized.StatusColor = "#6666AA";
             AccountProfiles.Add(normalized);
         }
@@ -886,7 +886,7 @@ public class CsvGeneratorViewModel : BaseViewModel
         {
             snapshot.Add(new CsvAccountRow
             {
-                StatusText = "Template",
+                StatusText = "Plantilla",
                 StatusColor = "#6666AA"
             });
         }
@@ -907,7 +907,7 @@ public class CsvGeneratorViewModel : BaseViewModel
 
         foreach (var profile in snapshot)
         {
-            profile.StatusText = "Template";
+            profile.StatusText = "Plantilla";
             profile.StatusColor = "#6666AA";
         }
 
@@ -969,7 +969,7 @@ public class CsvGeneratorViewModel : BaseViewModel
         for (var index = 0; index < AccountProfiles.Count; index++)
         {
             AccountProfiles[index].RowNumber = index + 1;
-            AccountProfiles[index].StatusText = $"Template {index + 1}";
+            AccountProfiles[index].StatusText = $"Plantilla {index + 1}";
             AccountProfiles[index].StatusColor = "#6666AA";
         }
     }
@@ -984,7 +984,8 @@ public class CsvGeneratorViewModel : BaseViewModel
 
     static CsvAccountRow CreateDraftRow() => new()
     {
-        StatusText = "Draft",
+        StatusText = "Borrador",
         StatusColor = "#9FE8F2"
     };
 }
+

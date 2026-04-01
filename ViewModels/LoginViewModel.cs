@@ -1,4 +1,4 @@
-using CyberArkManager.Helpers;
+﻿using CyberArkManager.Helpers;
 using CyberArkManager.Models;
 using CyberArkManager.Services;
 using Serilog;
@@ -15,6 +15,7 @@ public class LoginViewModel : BaseViewModel
     {
         _auth = auth;
         _cfg = cfg;
+        AuthMethods = AuthMethodOption.CreateDefaults();
 
         PvwaUrl = cfg.PvwaUrl;
         Username = cfg.RememberUsername ? cfg.LastUsername ?? string.Empty : string.Empty;
@@ -54,7 +55,7 @@ public class LoginViewModel : BaseViewModel
     public bool RequiresPvwaUrl => !IsLocalMode;
     public bool RequiresCredentials => SelectedAuthMethod != "Windows" && !IsLocalMode;
 
-    public List<string> AuthMethods { get; } = new() { "Local", "CyberArk", "LDAP", "RADIUS", "Windows" };
+    public IReadOnlyList<AuthMethodOption> AuthMethods { get; }
 
     public AsyncRelayCommand LoginCommand { get; }
     public event EventHandler<UserSession>? LoginSucceeded;
@@ -143,3 +144,20 @@ public class LoginViewModel : BaseViewModel
         }
     }
 }
+
+public sealed class AuthMethodOption
+{
+    public required string Value { get; init; }
+    public required string DisplayName { get; init; }
+
+    public static IReadOnlyList<AuthMethodOption> CreateDefaults()
+        => new[]
+        {
+            new AuthMethodOption { Value = "Local", DisplayName = "Modo local" },
+            new AuthMethodOption { Value = "CyberArk", DisplayName = "CyberArk" },
+            new AuthMethodOption { Value = "LDAP", DisplayName = "LDAP" },
+            new AuthMethodOption { Value = "RADIUS", DisplayName = "RADIUS" },
+            new AuthMethodOption { Value = "Windows", DisplayName = "Windows integrada" }
+        };
+}
+

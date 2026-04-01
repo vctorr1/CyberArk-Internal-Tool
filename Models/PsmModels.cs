@@ -18,9 +18,9 @@ public class PsmSession
     [JsonPropertyName("ConnectionComponent")] public string? ConnectionComponent { get; set; }
     [JsonPropertyName("Protocol")]           public string? Protocol   { get; set; }
     [JsonPropertyName("RiskScore")]          public int? RiskScore     { get; set; }
-    public string StartDisplay => Start > 0 ? DateTimeOffset.FromUnixTimeSeconds(Start).LocalDateTime.ToString("dd/MM/yyyy HH:mm:ss") : "â€”";
+    public string StartDisplay => Start > 0 ? DateTimeOffset.FromUnixTimeSeconds(Start).LocalDateTime.ToString("dd/MM/yyyy HH:mm:ss") : "-";
     public string EndDisplay   => End > 0   ? DateTimeOffset.FromUnixTimeSeconds(End).LocalDateTime.ToString("dd/MM/yyyy HH:mm:ss")   : "Activa";
-    public string DurationDisplay => Duration > 0 ? TimeSpan.FromSeconds(Duration).ToString(@"hh\:mm\:ss") : "â€”";
+    public string DurationDisplay => Duration > 0 ? TimeSpan.FromSeconds(Duration).ToString(@"hh\:mm\:ss") : "-";
     public bool IsActive => Status.Equals("Active", StringComparison.OrdinalIgnoreCase);
 }
 
@@ -42,8 +42,8 @@ public class PsmRecording
     [JsonPropertyName("Start")]         public long Start           { get; set; }
     [JsonPropertyName("End")]           public long End             { get; set; }
     [JsonPropertyName("Duration")]      public long Duration        { get; set; }
-    public string StartDisplay    => Start > 0    ? DateTimeOffset.FromUnixTimeSeconds(Start).LocalDateTime.ToString("dd/MM/yyyy HH:mm") : "â€”";
-    public string DurationDisplay => Duration > 0 ? TimeSpan.FromSeconds(Duration).ToString(@"hh\:mm\:ss") : "â€”";
+    public string StartDisplay    => Start > 0    ? DateTimeOffset.FromUnixTimeSeconds(Start).LocalDateTime.ToString("dd/MM/yyyy HH:mm") : "-";
+    public string DurationDisplay => Duration > 0 ? TimeSpan.FromSeconds(Duration).ToString(@"hh\:mm\:ss") : "-";
 }
 
 public class PsmRecordingsResponse
@@ -51,3 +51,4 @@ public class PsmRecordingsResponse
     [JsonPropertyName("Recordings")] public List<PsmRecording>? Recordings { get; set; }
     [JsonPropertyName("Total")]      public int Total                       { get; set; }
 }
+

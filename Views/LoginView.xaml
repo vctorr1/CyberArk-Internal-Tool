@@ -11,44 +11,46 @@
                 <TextBlock Text="Navaja Suiza PAM v2.0" FontSize="12" Foreground="#44446A" HorizontalAlignment="Center"/>
                 <Separator Margin="30,20" Background="#1A1A40"/>
                 <TextBlock TextWrapping="Wrap" Foreground="#333355" FontSize="11" TextAlignment="Center">
-                    Local and PVWA access for CyberArk PAM&#x0a;REST API / .NET 8 / WPF / DPAPI
+                    Acceso local y acceso a PVWA para CyberArk PAM&#x0a;API REST / .NET 8 / WPF / DPAPI
                 </TextBlock>
             </StackPanel>
         </Border>
         <Border Grid.Column="1" VerticalAlignment="Center" Padding="2">
             <md:Card Padding="38,34" Background="#1A1A2E" UniformCornerRadius="8">
                 <StackPanel>
-                    <TextBlock Text="Sign In" FontSize="21" FontWeight="Bold" Foreground="White" Margin="0,0,0,4"/>
-                    <TextBlock Text="Connect to CyberArk PVWA or use local mode" FontSize="11" Foreground="#44446A" Margin="0,0,0,24"/>
+                    <TextBlock Text="Acceso" FontSize="21" FontWeight="Bold" Foreground="White" Margin="0,0,0,4"/>
+                    <TextBlock Text="Conéctate a CyberArk PVWA o usa el modo local" FontSize="11" Foreground="#44446A" Margin="0,0,0,24"/>
 
                     <TextBox Text="{Binding PvwaUrl, UpdateSourceTrigger=PropertyChanged}"
-                             md:HintAssist.Hint="PVWA URL (https://pvwa.company.com)"
+                             md:HintAssist.Hint="URL de PVWA (https://pvwa.empresa.com)"
                              md:HintAssist.IsFloating="True"
                              Style="{StaticResource MaterialDesignOutlinedTextBox}"
                              IsEnabled="{Binding RequiresPvwaUrl}"
                              FontFamily="Consolas" FontSize="11" Margin="0,0,0,14"/>
 
                     <ComboBox ItemsSource="{Binding AuthMethods}"
-                              SelectedItem="{Binding SelectedAuthMethod}"
-                              md:HintAssist.Hint="Authentication method"
+                              SelectedValue="{Binding SelectedAuthMethod}"
+                              SelectedValuePath="Value"
+                              DisplayMemberPath="DisplayName"
+                              md:HintAssist.Hint="Método de autenticación"
                               md:HintAssist.IsFloating="True"
                               Style="{StaticResource MaterialDesignOutlinedComboBox}"
                               Margin="0,0,0,14"/>
 
                     <Border Background="#1200BCD4" CornerRadius="4" Padding="10,8" Margin="0,0,0,14"
                             Visibility="{Binding IsLocalMode, Converter={StaticResource BoolToVis}}">
-                        <TextBlock Text="Local mode lets you open the UI, prepare CSV onboarding files, and manage local templates without a PVWA connection."
+                        <TextBlock Text="El modo local permite abrir la interfaz, preparar CSV de alta y gestionar plantillas locales sin conexión a PVWA."
                                    TextWrapping="Wrap" FontSize="11" Foreground="#9FE8F2"/>
                     </Border>
 
                     <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
-                             md:HintAssist.Hint="User"
+                             md:HintAssist.Hint="Usuario"
                              md:HintAssist.IsFloating="True"
                              Style="{StaticResource MaterialDesignOutlinedTextBox}"
                              Margin="0,0,0,14"/>
 
                     <PasswordBox x:Name="PbPwd"
-                                 md:HintAssist.Hint="Password"
+                                 md:HintAssist.Hint="Contraseña"
                                  md:HintAssist.IsFloating="True"
                                  Style="{StaticResource MaterialDesignOutlinedPasswordBox}"
                                  IsEnabled="{Binding RequiresCredentials}"
@@ -57,9 +59,9 @@
 
                     <Grid Margin="0,0,0,4">
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <CheckBox Grid.Column="0" Content="Remember user" IsChecked="{Binding RememberUsername}" Foreground="#6666AA" FontSize="11"/>
+                        <CheckBox Grid.Column="0" Content="Recordar usuario" IsChecked="{Binding RememberUsername}" Foreground="#6666AA" FontSize="11"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="Keep-alive:" Foreground="#44446A" FontSize="10" VerticalAlignment="Center"/>
+                            <TextBlock Text="Renovación:" Foreground="#44446A" FontSize="10" VerticalAlignment="Center"/>
                             <TextBox Text="{Binding HeartbeatMin}" Width="34" Margin="5,0,2,0" TextAlignment="Center" FontSize="11" Style="{StaticResource MaterialDesignOutlinedTextBox}" Padding="4,2"/>
                             <TextBlock Text="min" Foreground="#44446A" FontSize="10" VerticalAlignment="Center"/>
                         </StackPanel>
@@ -77,7 +79,7 @@
                             Style="{StaticResource MaterialDesignRaisedButton}">
                         <StackPanel Orientation="Horizontal">
                             <md:PackIcon Kind="Login" Width="16" Height="16" VerticalAlignment="Center"/>
-                            <TextBlock Text=" CONNECT" VerticalAlignment="Center"/>
+                            <TextBlock Text=" ENTRAR" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -86,3 +88,4 @@
         <Border Grid.Column="2" Background="#0D0D1A"/>
     </Grid>
 </UserControl>
+

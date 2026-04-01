@@ -1,4 +1,4 @@
-<UserControl x:Class="CyberArkManager.Views.CsvGeneratorView"
+﻿<UserControl x:Class="CyberArkManager.Views.CsvGeneratorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes">
@@ -19,44 +19,44 @@
 
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
                 <md:PackIcon Kind="FileDelimited" Width="22" Height="22" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
-                <TextBlock Text="CSV Builder / Bulk API Upload" FontSize="18" FontWeight="Bold" Foreground="White" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding RowCount, StringFormat=' - {0} rows in current preview'}" FontSize="12" Foreground="#44446A" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                <TextBlock Text="Generador CSV / Carga masiva por API" FontSize="18" FontWeight="Bold" Foreground="White" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding RowCount, StringFormat=' - {0} filas en la vista previa actual'}" FontSize="12" Foreground="#44446A" Margin="6,0,0,0" VerticalAlignment="Center"/>
             </StackPanel>
 
             <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12,8" Margin="0,0,0,10"
                     Visibility="{Binding IsLocalMode, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="Local mode is active. CSV generation works fully offline. API upload and account linking are disabled until you sign in to PVWA."
+                <TextBlock Text="El modo local está activo. La generación de CSV funciona completamente en local. La subida por API y el enlace de cuentas se activan al iniciar sesión en PVWA."
                            TextWrapping="Wrap" FontSize="11" Foreground="#9FE8F2"/>
             </Border>
 
             <Border Grid.Row="2" Style="{StaticResource Card}" Padding="12,8" Margin="0,0,0,10">
                 <WrapPanel>
                     <Button Command="{Binding AddRowCommand}" Height="34" FontSize="11" Margin="0,0,6,0" Style="{StaticResource MaterialDesignOutlinedButton}">
-                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Plus" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Add Row" VerticalAlignment="Center"/></StackPanel>
+                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Plus" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Añadir fila" VerticalAlignment="Center"/></StackPanel>
                     </Button>
                     <Button Command="{Binding RemoveRowCommand}" Height="34" FontSize="11" Margin="0,0,6,0" Foreground="{StaticResource DangerBrush}" BorderBrush="{StaticResource DangerBrush}" Style="{StaticResource MaterialDesignOutlinedButton}">
-                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Minus" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Remove" VerticalAlignment="Center"/></StackPanel>
+                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Minus" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Quitar" VerticalAlignment="Center"/></StackPanel>
                     </Button>
                     <Button Command="{Binding ClearCommand}" Height="34" FontSize="11" Margin="0,0,6,0" Foreground="#555577" Style="{StaticResource MaterialDesignFlatButton}">
-                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="TrashCan" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Clear All" VerticalAlignment="Center"/></StackPanel>
+                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="TrashCan" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Limpiar todo" VerticalAlignment="Center"/></StackPanel>
                     </Button>
                     <Button Command="{Binding ImportCommand}" Height="34" FontSize="11" Margin="0,0,6,0" Style="{StaticResource MaterialDesignOutlinedButton}">
-                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Upload" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Import CSV/TXT" VerticalAlignment="Center"/></StackPanel>
+                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Upload" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Importar CSV/TXT" VerticalAlignment="Center"/></StackPanel>
                     </Button>
                     <Button Command="{Binding PreviewCommand}" Height="34" FontSize="11" Margin="0,0,6,0" Style="{StaticResource MaterialDesignOutlinedButton}">
-                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="OpenInNew" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Preview Window" VerticalAlignment="Center"/></StackPanel>
+                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="OpenInNew" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Vista previa" VerticalAlignment="Center"/></StackPanel>
                     </Button>
                     <Button Command="{Binding SaveProcessedCommand}" Height="34" FontSize="11" Margin="0,0,6,0" Style="{StaticResource MaterialDesignOutlinedButton}">
-                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="ContentSaveOutline" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Save Processed" VerticalAlignment="Center"/></StackPanel>
+                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="ContentSaveOutline" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Guardar instantánea" VerticalAlignment="Center"/></StackPanel>
                     </Button>
                     <Button Command="{Binding ExportCommand}" Height="34" FontSize="11" Margin="0,0,6,0" Style="{StaticResource MaterialDesignOutlinedButton}">
-                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Download" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Export CSV" VerticalAlignment="Center"/></StackPanel>
+                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Download" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Exportar CSV" VerticalAlignment="Center"/></StackPanel>
                     </Button>
                     <Button Command="{Binding TemplateCommand}" Height="34" FontSize="11" Margin="0,0,14,0" Style="{StaticResource MaterialDesignOutlinedButton}">
-                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="FileOutline" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Empty CSV" VerticalAlignment="Center"/></StackPanel>
+                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="FileOutline" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" CSV vacío" VerticalAlignment="Center"/></StackPanel>
                     </Button>
                     <Button Command="{Binding UploadApiCommand}" IsEnabled="{Binding CanUploadToApi}" Height="34" FontSize="12" FontWeight="Bold" Background="{StaticResource AccentBrush}" BorderBrush="{StaticResource AccentBrush}" Style="{StaticResource MaterialDesignRaisedButton}">
-                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="CloudUpload" Width="15" Height="15" VerticalAlignment="Center"/><TextBlock Text=" Upload by API" VerticalAlignment="Center"/></StackPanel>
+                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="CloudUpload" Width="15" Height="15" VerticalAlignment="Center"/><TextBlock Text=" Subir por API" VerticalAlignment="Center"/></StackPanel>
                     </Button>
                 </WrapPanel>
             </Border>
@@ -76,8 +76,8 @@
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0">
-                            <TextBlock Text="Application Template" FontSize="15" FontWeight="Bold" Foreground="White"/>
-                            <TextBlock Text="Each imported server expands into one account per template row. The exported CSV uses the official columns username,address,safe,platformID,password,EnableAutoMgmt,ManualMgmtReason."
+                            <TextBlock Text="Plantilla de aplicación" FontSize="15" FontWeight="Bold" Foreground="White"/>
+                            <TextBlock Text="Cada servidor importado se expande en una cuenta por fila de plantilla. El CSV exportado usa las columnas oficiales username,address,safe,platformID,password,EnableAutoMgmt,ManualMgmtReason."
                                        FontSize="10" Foreground="#6666AA" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
 
@@ -94,27 +94,27 @@
 
                             <ComboBox Grid.Row="0" Grid.Column="0" ItemsSource="{Binding Templates}" SelectedItem="{Binding SelectedTemplate}" DisplayMemberPath="Name"
                                       Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,0,8,8"
-                                      md:HintAssist.Hint="Saved template" md:HintAssist.IsFloating="True"/>
+                                      md:HintAssist.Hint="Plantilla guardada" md:HintAssist.IsFloating="True"/>
                             <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding TemplateName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,8,8"
-                                     md:HintAssist.Hint="Template name" md:HintAssist.IsFloating="True"/>
+                                     md:HintAssist.Hint="Nombre de la plantilla" md:HintAssist.IsFloating="True"/>
                             <ComboBox Grid.Row="0" Grid.Column="2" ItemsSource="{Binding AccountCountOptions}" SelectedItem="{Binding AccountsPerServer}"
                                       Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,0,0,8"
-                                      md:HintAssist.Hint="Accounts/server" md:HintAssist.IsFloating="True"/>
+                                      md:HintAssist.Hint="Cuentas/servidor" md:HintAssist.IsFloating="True"/>
 
                             <TextBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding TemplateDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,8,0"
-                                     md:HintAssist.Hint="Description" md:HintAssist.IsFloating="True"/>
+                                     md:HintAssist.Hint="Descripción" md:HintAssist.IsFloating="True"/>
                             <WrapPanel Grid.Row="1" Grid.Column="2" HorizontalAlignment="Right">
                                 <Button Command="{Binding SaveTemplateCommand}" Height="32" FontSize="10" Margin="0,0,6,0" Style="{StaticResource MaterialDesignOutlinedButton}">
-                                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="ContentSave" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Save" VerticalAlignment="Center"/></StackPanel>
+                                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="ContentSave" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Guardar" VerticalAlignment="Center"/></StackPanel>
                                 </Button>
                                 <Button Command="{Binding LoadTemplateCommand}" Height="32" FontSize="10" Margin="0,0,6,0" Style="{StaticResource MaterialDesignOutlinedButton}">
-                                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="TrayArrowDown" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Load" VerticalAlignment="Center"/></StackPanel>
+                                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="TrayArrowDown" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Cargar" VerticalAlignment="Center"/></StackPanel>
                                 </Button>
                                 <Button Command="{Binding DeleteTemplateCommand}" Height="32" FontSize="10" Margin="0,0,6,0" Foreground="{StaticResource DangerBrush}" BorderBrush="{StaticResource DangerBrush}" Style="{StaticResource MaterialDesignOutlinedButton}">
-                                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Delete" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Delete" VerticalAlignment="Center"/></StackPanel>
+                                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Delete" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Eliminar" VerticalAlignment="Center"/></StackPanel>
                                 </Button>
                                 <Button Command="{Binding NewTemplateCommand}" Height="32" FontSize="10" Style="{StaticResource MaterialDesignOutlinedButton}">
-                                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Pencil" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" New" VerticalAlignment="Center"/></StackPanel>
+                                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Pencil" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Nueva" VerticalAlignment="Center"/></StackPanel>
                                 </Button>
                             </WrapPanel>
                         </Grid>
@@ -152,8 +152,8 @@
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0">
-                            <TextBlock Text="Server Input" FontSize="15" FontWeight="Bold" Foreground="White"/>
-                            <TextBlock Text="Import CSV/TXT from the toolbar or paste one address per line here. The current template is expanded over every imported server."
+                            <TextBlock Text="Entrada de servidores" FontSize="15" FontWeight="Bold" Foreground="White"/>
+                            <TextBlock Text="Importa CSV/TXT desde la barra superior o pega aquí una dirección por línea. La plantilla actual se expande sobre cada servidor importado."
                                        FontSize="10" Foreground="#6666AA" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
 
@@ -165,27 +165,27 @@
 
                         <WrapPanel Grid.Row="2" Margin="0,0,0,10">
                             <Button Command="{Binding ImportAddressesCommand}" Height="34" FontSize="11" Margin="0,0,6,0" Style="{StaticResource MaterialDesignOutlinedButton}">
-                                <StackPanel Orientation="Horizontal"><md:PackIcon Kind="ClipboardText" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Paste Address List" VerticalAlignment="Center"/></StackPanel>
+                                <StackPanel Orientation="Horizontal"><md:PackIcon Kind="ClipboardText" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Pegar lista de direcciones" VerticalAlignment="Center"/></StackPanel>
                             </Button>
                             <Button Command="{Binding PreviewCommand}" Height="34" FontSize="11" Margin="0,0,6,0" Style="{StaticResource MaterialDesignOutlinedButton}">
-                                <StackPanel Orientation="Horizontal"><md:PackIcon Kind="MonitorEye" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Open Preview" VerticalAlignment="Center"/></StackPanel>
+                                <StackPanel Orientation="Horizontal"><md:PackIcon Kind="MonitorEye" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Abrir vista previa" VerticalAlignment="Center"/></StackPanel>
                             </Button>
                             <Button Command="{Binding SaveProcessedCommand}" Height="34" FontSize="11" Style="{StaticResource MaterialDesignOutlinedButton}">
-                                <StackPanel Orientation="Horizontal"><md:PackIcon Kind="ArchiveArrowDown" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Archive Snapshot" VerticalAlignment="Center"/></StackPanel>
+                                <StackPanel Orientation="Horizontal"><md:PackIcon Kind="ArchiveArrowDown" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Archivar instantánea" VerticalAlignment="Center"/></StackPanel>
                             </Button>
                         </WrapPanel>
 
                         <Border Grid.Row="3" Background="#10101C" CornerRadius="6" Padding="10">
                             <StackPanel>
-                                <TextBlock Text="Processed CSV Archive" FontSize="13" FontWeight="SemiBold" Foreground="White"/>
+                                <TextBlock Text="Histórico de CSV procesados" FontSize="13" FontWeight="SemiBold" Foreground="White"/>
                                 <TextBlock Text="{Binding ProcessedCsvDirectory}" FontSize="10" Foreground="#6666AA" TextWrapping="Wrap" Margin="0,4,0,4"/>
                                 <TextBlock Text="{Binding LastProcessedCsvPath}" FontSize="10" Foreground="#9FE8F2" TextWrapping="Wrap" Margin="0,0,0,6"/>
                                 <WrapPanel Margin="0,0,0,8">
                                     <Button Command="{Binding LoadProcessedCommand}" Height="30" FontSize="10" Margin="0,0,6,0" Style="{StaticResource MaterialDesignOutlinedButton}">
-                                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="TrayArrowDown" Width="12" Height="12" VerticalAlignment="Center"/><TextBlock Text=" Load Snapshot" VerticalAlignment="Center"/></StackPanel>
+                                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="TrayArrowDown" Width="12" Height="12" VerticalAlignment="Center"/><TextBlock Text=" Cargar instantánea" VerticalAlignment="Center"/></StackPanel>
                                     </Button>
                                     <Button Command="{Binding ExportProcessedCommand}" Height="30" FontSize="10" Style="{StaticResource MaterialDesignOutlinedButton}">
-                                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Download" Width="12" Height="12" VerticalAlignment="Center"/><TextBlock Text=" Export Snapshot" VerticalAlignment="Center"/></StackPanel>
+                                        <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Download" Width="12" Height="12" VerticalAlignment="Center"/><TextBlock Text=" Exportar instantánea" VerticalAlignment="Center"/></StackPanel>
                                     </Button>
                                 </WrapPanel>
                                 <ListBox ItemsSource="{Binding ProcessedCsvFiles}" SelectedItem="{Binding SelectedProcessedCsv}" Background="Transparent" BorderThickness="0" Height="120" ScrollViewer.VerticalScrollBarVisibility="Auto">
@@ -217,8 +217,8 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Margin="0,0,0,10">
-                        <TextBlock Text="Preview" FontSize="15" FontWeight="Bold" Foreground="White"/>
-                        <TextBlock Text="Scrollable preview of the final CSV. Exported headers are username,address,safe,platformID,password,EnableAutoMgmt,ManualMgmtReason and UseSudoOnReconcile only when enabled."
+                        <TextBlock Text="Vista previa" FontSize="15" FontWeight="Bold" Foreground="White"/>
+                        <TextBlock Text="Vista previa desplazable del CSV final. Las cabeceras exportadas son username,address,safe,platformID,password,EnableAutoMgmt,ManualMgmtReason y UseSudoOnReconcile solo cuando esté activado."
                                    FontSize="10" Foreground="#6666AA" TextWrapping="Wrap" Margin="0,4,0,0"/>
                     </StackPanel>
 
@@ -241,7 +241,7 @@
                             <DataGridCheckBoxColumn Header="EnableAutoMgmt" Binding="{Binding AutoManagement, UpdateSourceTrigger=PropertyChanged}" Width="115"/>
                             <DataGridTextColumn Header="ManualMgmtReason" Binding="{Binding ManualReason, UpdateSourceTrigger=PropertyChanged}" Width="170"/>
                             <DataGridCheckBoxColumn Header="UseSudoOnReconcile" Binding="{Binding UseSudoOnReconcile, UpdateSourceTrigger=PropertyChanged}" Width="130"/>
-                            <DataGridTextColumn Header="status" Binding="{Binding StatusText}" Width="90" IsReadOnly="True">
+                            <DataGridTextColumn Header="estado" Binding="{Binding StatusText}" Width="90" IsReadOnly="True">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="Foreground" Value="{Binding StatusColor}"/>
@@ -269,8 +269,8 @@
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0">
-                            <TextBlock Text="API Account Linking" FontSize="15" FontWeight="Bold" Foreground="White"/>
-                            <TextBlock Text="Provide one or more server addresses plus the shared account name. The app finds that logon or reconciliation account on each server and links it to the other accounts for the same address."
+                            <TextBlock Text="Enlace de cuentas por API" FontSize="15" FontWeight="Bold" Foreground="White"/>
+                            <TextBlock Text="Indica una o varias direcciones de servidor y el nombre compartido de la cuenta. La aplicación localiza la cuenta de logon o reconciliación en cada servidor y la enlaza con el resto de cuentas de esa misma dirección."
                                        FontSize="10" Foreground="#6666AA" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
 
@@ -280,10 +280,10 @@
                                 <ColumnDefinition Width="180"/>
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" Text="{Binding LinkedAccountName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,8,0"
-                                     md:HintAssist.Hint="Shared linked account name" md:HintAssist.IsFloating="True"/>
+                                     md:HintAssist.Hint="Nombre común de la cuenta enlazada" md:HintAssist.IsFloating="True"/>
                             <ComboBox Grid.Column="1" ItemsSource="{Binding LinkTypeOptions}" SelectedItem="{Binding SelectedLinkTypeOption}" DisplayMemberPath="DisplayName"
                                       Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                                      md:HintAssist.Hint="Link type" md:HintAssist.IsFloating="True"/>
+                                      md:HintAssist.Hint="Tipo de enlace" md:HintAssist.IsFloating="True"/>
                         </Grid>
 
                         <TextBox Grid.Row="2" Text="{Binding LinkAddressesInput, UpdateSourceTrigger=PropertyChanged}"
@@ -302,12 +302,12 @@
                                 <RowDefinition Height="120"/>
                             </Grid.RowDefinitions>
 
-                            <TextBlock Grid.Row="0" Text="Link execution" FontSize="13" FontWeight="SemiBold" Foreground="White"/>
+                            <TextBlock Grid.Row="0" Text="Ejecución del enlace" FontSize="13" FontWeight="SemiBold" Foreground="White"/>
                             <Button Grid.Row="1" Command="{Binding LinkAccountsCommand}" IsEnabled="{Binding CanUseApiOperations}"
                                     Height="34" Margin="0,10,0,8"
                                     Background="{StaticResource AccentBrush}" BorderBrush="{StaticResource AccentBrush}"
                                     Style="{StaticResource MaterialDesignRaisedButton}">
-                                <StackPanel Orientation="Horizontal"><md:PackIcon Kind="LinkVariant" Width="14" Height="14" VerticalAlignment="Center"/><TextBlock Text=" Link Matching Accounts" VerticalAlignment="Center"/></StackPanel>
+                                <StackPanel Orientation="Horizontal"><md:PackIcon Kind="LinkVariant" Width="14" Height="14" VerticalAlignment="Center"/><TextBlock Text=" Enlazar cuentas coincidentes" VerticalAlignment="Center"/></StackPanel>
                             </Button>
                             <StackPanel Grid.Row="2" Margin="0,0,0,8">
                                 <ProgressBar Height="6" Minimum="0" Maximum="100" Value="{Binding LinkProgress}" Foreground="{StaticResource AccentBrush}"
@@ -329,11 +329,11 @@
                         <RowDefinition Height="100"/>
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" FontSize="12" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,6">
-                        <Run Text="Uploading... "/>
+                        <Run Text="Subiendo... "/>
                         <Run Text="{Binding UploadOk}" Foreground="#4CAF50"/>
                         <Run Text=" OK  "/>
                         <Run Text="{Binding UploadFail}" Foreground="#F44336"/>
-                        <Run Text=" errors"/>
+                        <Run Text=" errores"/>
                     </TextBlock>
                     <ProgressBar Grid.Row="1" Value="{Binding UploadProgress}" Minimum="0" Maximum="100" Height="6" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,8"/>
                     <ListBox Grid.Row="2" ItemsSource="{Binding Log}" Background="Transparent" BorderThickness="0" FontFamily="Consolas" FontSize="10" Foreground="#9999BB" ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.ScrollUnit="Pixel">
@@ -352,3 +352,5 @@
         </Grid>
     </ScrollViewer>
 </UserControl>
+
+

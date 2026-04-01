@@ -9,9 +9,7 @@ using Microsoft.Win32;
 
 namespace CyberArkManager.ViewModels;
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// SAFES
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// Safes
 public class SafesViewModel : BaseViewModel
 {
     readonly CyberArkApiService _api;
@@ -64,73 +62,71 @@ public class SafesViewModel : BaseViewModel
     public AsyncRelayCommand AddMemberCommand    { get; }
     public AsyncRelayCommand RemoveMemberCommand { get; }
 
-    async Task LoadAsync(object? _) { IsBusy = true; SetStatus("ðŸ”„ Cargando Safes..."); try { var l = await _api.GetSafesAsync(string.IsNullOrWhiteSpace(FilterSearch) ? null : FilterSearch); Ui(() => { Safes.Clear(); foreach (var s in l) Safes.Add(s); }); SetStatus($"âœ” {l.Count} Safes."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
+    async Task LoadAsync(object? _) { IsBusy = true; SetStatus("Cargando safes..."); try { var l = await _api.GetSafesAsync(string.IsNullOrWhiteSpace(FilterSearch) ? null : FilterSearch); Ui(() => { Safes.Clear(); foreach (var s in l) Safes.Add(s); }); SetStatus($"{l.Count} safes."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
 
     async Task CreateAsync(object? _)
     {
-        if (string.IsNullOrWhiteSpace(NewName)) { SetStatus("âš  Nombre de Safe obligatorio.", true); return; }
+        if (string.IsNullOrWhiteSpace(NewName)) { SetStatus("El nombre del safe es obligatorio.", true); return; }
         IsBusy = true;
-        try { var s = await _api.CreateSafeAsync(BuildReq()); Ui(() => Safes.Insert(0, s)); SetStatus($"âœ” Safe '{s.SafeName}' creado."); }
-        catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); }
+        try { var s = await _api.CreateSafeAsync(BuildReq()); Ui(() => Safes.Insert(0, s)); SetStatus($"Safe '{s.SafeName}' creado."); }
+        catch (Exception ex) { SetStatus($"{ex.Message}", true); }
         finally { IsBusy = false; }
     }
 
     async Task UpdateAsync(object? _)
     {
         if (SelectedSafe is null) return; IsBusy = true;
-        try { var s = await _api.UpdateSafeAsync(SelectedSafe.SafeUrlId, BuildReq()); var i = Safes.IndexOf(SelectedSafe); Ui(() => { if (i >= 0) Safes[i] = s; }); SetStatus($"âœ” Safe actualizado."); }
-        catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); }
+        try { var s = await _api.UpdateSafeAsync(SelectedSafe.SafeUrlId, BuildReq()); var i = Safes.IndexOf(SelectedSafe); Ui(() => { if (i >= 0) Safes[i] = s; }); SetStatus("Safe actualizado."); }
+        catch (Exception ex) { SetStatus($"{ex.Message}", true); }
         finally { IsBusy = false; }
     }
 
     async Task DeleteAsync(object? _)
     {
         if (SelectedSafe is null) return;
-        if (MessageBox.Show($"Â¿Eliminar Safe '{SelectedSafe.SafeName}'?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        if (MessageBox.Show($"¿Eliminar el safe '{SelectedSafe.SafeName}'?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
         IsBusy = true;
-        try { await _api.DeleteSafeAsync(SelectedSafe.SafeUrlId); Ui(() => Safes.Remove(SelectedSafe)); SetStatus("âœ” Safe eliminado."); }
-        catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); }
+        try { await _api.DeleteSafeAsync(SelectedSafe.SafeUrlId); Ui(() => Safes.Remove(SelectedSafe)); SetStatus("Safe eliminado."); }
+        catch (Exception ex) { SetStatus($"{ex.Message}", true); }
         finally { IsBusy = false; }
     }
 
     async Task LoadMembersAsync(object? _)
     {
         if (SelectedSafe is null) return; IsBusy = true;
-        try { var l = await _api.GetSafeMembersAsync(SelectedSafe.SafeUrlId); Ui(() => { Members.Clear(); foreach (var m in l) Members.Add(m); }); SetStatus($"âœ” {l.Count} miembros."); }
-        catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); }
+        try { var l = await _api.GetSafeMembersAsync(SelectedSafe.SafeUrlId); Ui(() => { Members.Clear(); foreach (var m in l) Members.Add(m); }); SetStatus($"{l.Count} miembros."); }
+        catch (Exception ex) { SetStatus($"{ex.Message}", true); }
         finally { IsBusy = false; }
     }
 
     async Task AddMemberAsync(object? _)
     {
-        if (SelectedSafe is null || string.IsNullOrWhiteSpace(MemberName)) { SetStatus("âš  Nombre de miembro requerido.", true); return; }
+        if (SelectedSafe is null || string.IsNullOrWhiteSpace(MemberName)) { SetStatus("Nombre de miembro requerido.", true); return; }
         IsBusy = true;
         try
         {
             var perms = new SafePermissions { ManageSafe = PermManage, ManageSafeMembers = PermManage, ListAccounts = PermList, AddAccounts = PermAdd, DeleteAccounts = PermDelete, UseAccounts = PermUse, ViewAuditLog = PermView, ViewSafeMembers = PermView, RetrieveAccounts = PermUse };
             var m = await _api.AddSafeMemberAsync(SelectedSafe.SafeUrlId, MemberName, MemberType, perms);
-            Ui(() => Members.Add(m)); SetStatus($"âœ” Miembro '{m.MemberName}' aÃ±adido.");
+            Ui(() => Members.Add(m)); SetStatus($"Miembro '{m.MemberName}' añadido.");
         }
-        catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); }
+        catch (Exception ex) { SetStatus($"{ex.Message}", true); }
         finally { IsBusy = false; }
     }
 
     async Task RemoveMemberAsync(object? _)
     {
         if (SelectedSafe is null || SelectedMember is null) return;
-        if (MessageBox.Show($"Â¿Eliminar miembro '{SelectedMember.MemberName}'?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        if (MessageBox.Show($"¿Eliminar miembro '{SelectedMember.MemberName}'?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
         IsBusy = true;
-        try { await _api.DeleteSafeMemberAsync(SelectedSafe.SafeUrlId, SelectedMember.MemberName); Ui(() => Members.Remove(SelectedMember)); SetStatus("âœ” Miembro eliminado."); }
-        catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); }
+        try { await _api.DeleteSafeMemberAsync(SelectedSafe.SafeUrlId, SelectedMember.MemberName); Ui(() => Members.Remove(SelectedMember)); SetStatus("Miembro eliminado."); }
+        catch (Exception ex) { SetStatus($"{ex.Message}", true); }
         finally { IsBusy = false; }
     }
 
     SafeCreateRequest BuildReq() => new() { SafeName = NewName, Description = NewDesc, ManagingCPM = NewCpm, Location = NewLoc, NumberOfVersionsRetention = NewVersions, NumberOfDaysRetention = NewDays, AutoPurgeEnabled = NewAutoPurge, OlacEnabled = NewOlac };
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// USERS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// Usuarios
 public class UsersViewModel : BaseViewModel
 {
     readonly CyberArkApiService _api;
@@ -177,19 +173,17 @@ public class UsersViewModel : BaseViewModel
     public AsyncRelayCommand LoadGroupsCommand    { get; }
     public AsyncRelayCommand AddToGroupCommand    { get; }
 
-    async Task LoadAsync(object? _) { IsBusy = true; SetStatus("ðŸ”„ Cargando usuarios..."); try { var l = await _api.GetUsersAsync(string.IsNullOrWhiteSpace(FilterText) ? null : FilterText, string.IsNullOrWhiteSpace(FilterType) ? null : FilterType); Ui(() => { Users.Clear(); foreach (var u in l) Users.Add(u); }); SetStatus($"âœ” {l.Count} usuarios."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task CreateAsync(object? _) { if (string.IsNullOrWhiteSpace(NewUsername) || string.IsNullOrWhiteSpace(NewPassword)) { SetStatus("âš  Usuario y contraseÃ±a obligatorios.", true); return; } IsBusy = true; try { var u = await _api.CreateUserAsync(new UserCreateRequest { Username = NewUsername, UserType = NewUserType, InitialPassword = NewPassword, FirstName = NewFirstName, LastName = NewLastName, Email = NewEmail }); Ui(() => Users.Insert(0, u)); SetStatus($"âœ” Usuario '{u.Username}' creado."); NewUsername = ""; NewPassword = ""; } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task DeleteAsync(object? _) { if (SelectedUser is null) return; if (MessageBox.Show($"Â¿Eliminar usuario '{SelectedUser.Username}'?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return; IsBusy = true; try { await _api.DeleteUserAsync(SelectedUser.Id); Ui(() => Users.Remove(SelectedUser)); SetStatus("âœ” Usuario eliminado."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task ActivateAsync(object? _) { if (SelectedUser is null) return; IsBusy = true; try { await _api.ActivateUserAsync(SelectedUser.Id); SelectedUser.Suspended = false; SetStatus($"âœ” Usuario '{SelectedUser.Username}' activado."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task SuspendAsync(object? _) { if (SelectedUser is null) return; IsBusy = true; try { await _api.SuspendUserAsync(SelectedUser.Id); SelectedUser.Suspended = true; SetStatus($"âœ” Usuario '{SelectedUser.Username}' suspendido."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task ResetPwdAsync(object? _) { if (SelectedUser is null || string.IsNullOrWhiteSpace(ResetPassword)) { SetStatus("âš  Introduce la nueva contraseÃ±a.", true); return; } IsBusy = true; try { await _api.ResetUserPasswordAsync(SelectedUser.Id, ResetPassword); SetStatus($"âœ” ContraseÃ±a de '{SelectedUser.Username}' reseteada."); ResetPassword = ""; } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task LoadGroupsAsync(object? _) { IsBusy = true; try { var l = await _api.GetGroupsAsync(); Ui(() => { Groups.Clear(); foreach (var g in l) Groups.Add(g); }); SetStatus($"âœ” {l.Count} grupos."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task AddToGroupAsync(object? _) { if (SelectedUser is null || SelectedGroup is null) return; IsBusy = true; try { await _api.AddUserToGroupAsync(SelectedGroup.Id, SelectedUser.Username); SetStatus($"âœ” '{SelectedUser.Username}' aÃ±adido a '{SelectedGroup.Name}'."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
+    async Task LoadAsync(object? _) { IsBusy = true; SetStatus("Cargando usuarios..."); try { var l = await _api.GetUsersAsync(string.IsNullOrWhiteSpace(FilterText) ? null : FilterText, string.IsNullOrWhiteSpace(FilterType) ? null : FilterType); Ui(() => { Users.Clear(); foreach (var u in l) Users.Add(u); }); SetStatus($"{l.Count} usuarios."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task CreateAsync(object? _) { if (string.IsNullOrWhiteSpace(NewUsername) || string.IsNullOrWhiteSpace(NewPassword)) { SetStatus("Usuario y contraseña obligatorios.", true); return; } IsBusy = true; try { var u = await _api.CreateUserAsync(new UserCreateRequest { Username = NewUsername, UserType = NewUserType, InitialPassword = NewPassword, FirstName = NewFirstName, LastName = NewLastName, Email = NewEmail }); Ui(() => Users.Insert(0, u)); SetStatus($"Usuario '{u.Username}' creado."); NewUsername = ""; NewPassword = ""; } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task DeleteAsync(object? _) { if (SelectedUser is null) return; if (MessageBox.Show($"¿Eliminar usuario '{SelectedUser.Username}'?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return; IsBusy = true; try { await _api.DeleteUserAsync(SelectedUser.Id); Ui(() => Users.Remove(SelectedUser)); SetStatus("Usuario eliminado."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task ActivateAsync(object? _) { if (SelectedUser is null) return; IsBusy = true; try { await _api.ActivateUserAsync(SelectedUser.Id); SelectedUser.Suspended = false; SetStatus($"Usuario '{SelectedUser.Username}' activado."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task SuspendAsync(object? _) { if (SelectedUser is null) return; IsBusy = true; try { await _api.SuspendUserAsync(SelectedUser.Id); SelectedUser.Suspended = true; SetStatus($"Usuario '{SelectedUser.Username}' suspendido."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task ResetPwdAsync(object? _) { if (SelectedUser is null || string.IsNullOrWhiteSpace(ResetPassword)) { SetStatus("Introduce la nueva contraseña.", true); return; } IsBusy = true; try { await _api.ResetUserPasswordAsync(SelectedUser.Id, ResetPassword); SetStatus($"Contraseña de '{SelectedUser.Username}' restablecida."); ResetPassword = ""; } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task LoadGroupsAsync(object? _) { IsBusy = true; try { var l = await _api.GetGroupsAsync(); Ui(() => { Groups.Clear(); foreach (var g in l) Groups.Add(g); }); SetStatus($"{l.Count} grupos."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task AddToGroupAsync(object? _) { if (SelectedUser is null || SelectedGroup is null) return; IsBusy = true; try { await _api.AddUserToGroupAsync(SelectedGroup.Id, SelectedUser.Username); SetStatus($"'{SelectedUser.Username}' añadido a '{SelectedGroup.Name}'."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// PLATFORMS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// Plataformas
 public class PlatformsViewModel : BaseViewModel
 {
     readonly CyberArkApiService _api;
@@ -220,35 +214,33 @@ public class PlatformsViewModel : BaseViewModel
     public AsyncRelayCommand ExportCommand     { get; }
     public AsyncRelayCommand ImportCommand     { get; }
 
-    async Task LoadAsync(object? _) { IsBusy = true; SetStatus("ðŸ”„ Cargando plataformas..."); try { var l = await _api.GetPlatformsAsync(FilterActive, string.IsNullOrWhiteSpace(SearchText) ? null : SearchText); Ui(() => { Platforms.Clear(); foreach (var p in l) Platforms.Add(p); }); SetStatus($"âœ” {l.Count} plataformas."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task ActivateAsync(object? _)   { if (SelectedPlatform is null) return; IsBusy = true; try { await _api.ActivatePlatformAsync(SelectedPlatform.Id); SelectedPlatform.Active = true; SetStatus($"âœ” Plataforma '{SelectedPlatform.Name}' activada."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task DeactivateAsync(object? _) { if (SelectedPlatform is null) return; IsBusy = true; try { await _api.DeactivatePlatformAsync(SelectedPlatform.Id); SelectedPlatform.Active = false; SetStatus($"âœ” Plataforma desactivada."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task DuplicateAsync(object? _)  { if (SelectedPlatform is null || string.IsNullOrWhiteSpace(DuplicateName)) { SetStatus("âš  Introduce nombre para la copia.", true); return; } IsBusy = true; try { await _api.DuplicatePlatformAsync(SelectedPlatform.Id, DuplicateName); SetStatus($"âœ” Plataforma duplicada como '{DuplicateName}'."); await LoadAsync(null); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task DeleteAsync(object? _)     { if (SelectedPlatform is null) return; if (MessageBox.Show($"Â¿Eliminar plataforma '{SelectedPlatform.Name}'?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return; IsBusy = true; try { await _api.DeletePlatformAsync(SelectedPlatform.Id); Ui(() => Platforms.Remove(SelectedPlatform)); SetStatus("âœ” Plataforma eliminada."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
+    async Task LoadAsync(object? _) { IsBusy = true; SetStatus("Cargando plataformas..."); try { var l = await _api.GetPlatformsAsync(FilterActive, string.IsNullOrWhiteSpace(SearchText) ? null : SearchText); Ui(() => { Platforms.Clear(); foreach (var p in l) Platforms.Add(p); }); SetStatus($"{l.Count} plataformas."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task ActivateAsync(object? _)   { if (SelectedPlatform is null) return; IsBusy = true; try { await _api.ActivatePlatformAsync(SelectedPlatform.Id); SelectedPlatform.Active = true; SetStatus($"Plataforma '{SelectedPlatform.Name}' activada."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task DeactivateAsync(object? _) { if (SelectedPlatform is null) return; IsBusy = true; try { await _api.DeactivatePlatformAsync(SelectedPlatform.Id); SelectedPlatform.Active = false; SetStatus($"Plataforma desactivada."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task DuplicateAsync(object? _)  { if (SelectedPlatform is null || string.IsNullOrWhiteSpace(DuplicateName)) { SetStatus("Introduce nombre para la copia.", true); return; } IsBusy = true; try { await _api.DuplicatePlatformAsync(SelectedPlatform.Id, DuplicateName); SetStatus($"Plataforma duplicada como '{DuplicateName}'."); await LoadAsync(null); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task DeleteAsync(object? _)     { if (SelectedPlatform is null) return; if (MessageBox.Show($"¿Eliminar plataforma '{SelectedPlatform.Name}'?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return; IsBusy = true; try { await _api.DeletePlatformAsync(SelectedPlatform.Id); Ui(() => Platforms.Remove(SelectedPlatform)); SetStatus("Plataforma eliminada."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
     async Task ExportAsync(object? _)
     {
         if (SelectedPlatform is null) return;
-        var dlg = new SaveFileDialog { Filter = "ZIP Files (*.zip)|*.zip", FileName = $"{SelectedPlatform.Id}.zip" };
+        var dlg = new SaveFileDialog { Filter = "Archivos ZIP (*.zip)|*.zip", FileName = $"{SelectedPlatform.Id}.zip" };
         if (dlg.ShowDialog() != true) return;
         IsBusy = true;
-        try { var data = await _api.ExportPlatformAsync(SelectedPlatform.Id); System.IO.File.WriteAllBytes(dlg.FileName, data); SetStatus($"âœ” Plataforma exportada: {dlg.FileName}"); }
-        catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); }
+        try { var data = await _api.ExportPlatformAsync(SelectedPlatform.Id); System.IO.File.WriteAllBytes(dlg.FileName, data); SetStatus($"Plataforma exportada: {dlg.FileName}"); }
+        catch (Exception ex) { SetStatus($"{ex.Message}", true); }
         finally { IsBusy = false; }
     }
     async Task ImportAsync(object? _)
     {
-        var dlg = new OpenFileDialog { Filter = "ZIP Files (*.zip)|*.zip" };
+        var dlg = new OpenFileDialog { Filter = "Archivos ZIP (*.zip)|*.zip" };
         if (dlg.ShowDialog() != true) return;
         IsBusy = true;
-        try { var data = System.IO.File.ReadAllBytes(dlg.FileName); await _api.ImportPlatformAsync(data); SetStatus("âœ” Plataforma importada."); await LoadAsync(null); }
-        catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); }
+        try { var data = System.IO.File.ReadAllBytes(dlg.FileName); await _api.ImportPlatformAsync(data); SetStatus("Plataforma importada."); await LoadAsync(null); }
+        catch (Exception ex) { SetStatus($"{ex.Message}", true); }
         finally { IsBusy = false; }
     }
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // PSM SESSIONS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 public class PsmSessionsViewModel : BaseViewModel
 {
     readonly CyberArkApiService _api;
@@ -270,14 +262,12 @@ public class PsmSessionsViewModel : BaseViewModel
     public AsyncRelayCommand LoadHistoryCommand { get; }
     public AsyncRelayCommand TerminateCommand   { get; }
 
-    async Task LoadActiveAsync(object? _) { IsBusy = true; SetStatus("ðŸ”„ Cargando sesiones activas..."); try { var l = await _api.GetActiveSessionsAsync(); Ui(() => { Sessions.Clear(); foreach (var s in l) Sessions.Add(s); }); SetStatus($"âœ” {l.Count} sesiones activas."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task LoadHistoryAsync(object? _) { IsBusy = true; SetStatus("ðŸ”„ Cargando historial..."); try { var l = await _api.GetSessionsHistoryAsync(string.IsNullOrWhiteSpace(FilterSafe) ? null : FilterSafe, string.IsNullOrWhiteSpace(FilterUser) ? null : FilterUser); Ui(() => { Sessions.Clear(); foreach (var s in l) Sessions.Add(s); }); SetStatus($"âœ” {l.Count} sesiones en historial."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task TerminateAsync(object? _) { if (SelectedSession is null) return; if (MessageBox.Show($"Â¿Terminar sesiÃ³n de '{SelectedSession.User}'?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return; IsBusy = true; try { await _api.TerminateSessionAsync(SelectedSession.SessionID); SetStatus("âœ” SesiÃ³n terminada."); await LoadActiveAsync(null); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
+    async Task LoadActiveAsync(object? _) { IsBusy = true; SetStatus("Cargando sesiones activas..."); try { var l = await _api.GetActiveSessionsAsync(); Ui(() => { Sessions.Clear(); foreach (var s in l) Sessions.Add(s); }); SetStatus($"{l.Count} sesiones activas."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task LoadHistoryAsync(object? _) { IsBusy = true; SetStatus("Cargando historial..."); try { var l = await _api.GetSessionsHistoryAsync(string.IsNullOrWhiteSpace(FilterSafe) ? null : FilterSafe, string.IsNullOrWhiteSpace(FilterUser) ? null : FilterUser); Ui(() => { Sessions.Clear(); foreach (var s in l) Sessions.Add(s); }); SetStatus($"{l.Count} sesiones en historial."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task TerminateAsync(object? _) { if (SelectedSession is null) return; if (MessageBox.Show($"¿Terminar sesión de '{SelectedSession.User}'?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return; IsBusy = true; try { await _api.TerminateSessionAsync(SelectedSession.SessionID); SetStatus("Sesión terminada."); await LoadActiveAsync(null); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // PSM RECORDINGS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 public class PsmRecordingsViewModel : BaseViewModel
 {
     readonly CyberArkApiService _api;
@@ -286,12 +276,10 @@ public class PsmRecordingsViewModel : BaseViewModel
     string _safe = ""; public string FilterSafe { get => _safe; set => Set(ref _safe, value); }
     PsmRecording? _sel; public PsmRecording? SelectedRecording { get => _sel; set => Set(ref _sel, value); }
     public AsyncRelayCommand LoadCommand { get; }
-    async Task LoadAsync(object? _) { IsBusy = true; SetStatus("ðŸ”„ Cargando grabaciones..."); try { var l = await _api.GetRecordingsAsync(string.IsNullOrWhiteSpace(FilterSafe) ? null : FilterSafe); Ui(() => { Recordings.Clear(); foreach (var r in l) Recordings.Add(r); }); SetStatus($"âœ” {l.Count} grabaciones."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
+    async Task LoadAsync(object? _) { IsBusy = true; SetStatus("Cargando grabaciones..."); try { var l = await _api.GetRecordingsAsync(string.IsNullOrWhiteSpace(FilterSafe) ? null : FilterSafe); Ui(() => { Recordings.Clear(); foreach (var r in l) Recordings.Add(r); }); SetStatus($"{l.Count} grabaciones."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // APPLICATIONS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 public class ApplicationsViewModel : BaseViewModel
 {
     readonly CyberArkApiService _api;
@@ -322,16 +310,14 @@ public class ApplicationsViewModel : BaseViewModel
     public AsyncRelayCommand AddMethodCommand    { get; }
     public AsyncRelayCommand DeleteMethodCommand { get; }
 
-    async Task LoadAsync(object? _) { IsBusy = true; SetStatus("ðŸ”„ Cargando aplicaciones..."); try { var l = await _api.GetApplicationsAsync(string.IsNullOrWhiteSpace(FilterText) ? null : FilterText); Ui(() => { Apps.Clear(); foreach (var a in l) Apps.Add(a); }); SetStatus($"âœ” {l.Count} aplicaciones."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task DeleteAsync(object? _) { if (SelectedApp is null) return; if (MessageBox.Show($"Â¿Eliminar app '{SelectedApp.AppID}'?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return; IsBusy = true; try { await _api.DeleteApplicationAsync(SelectedApp.AppID); Ui(() => Apps.Remove(SelectedApp)); SetStatus("âœ” AplicaciÃ³n eliminada."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task LoadMethodsAsync(object? _) { if (SelectedApp is null) return; IsBusy = true; try { var l = await _api.GetAppAuthMethodsAsync(SelectedApp.AppID); Ui(() => { Methods.Clear(); foreach (var m in l) Methods.Add(m); }); SetStatus($"âœ” {l.Count} mÃ©todos de autenticaciÃ³n."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task AddMethodAsync(object? _) { if (SelectedApp is null || string.IsNullOrWhiteSpace(NewMethodValue)) { SetStatus("âš  Valor del mÃ©todo requerido.", true); return; } IsBusy = true; try { await _api.AddAppAuthMethodAsync(SelectedApp.AppID, new AppAuthMethod { AuthType = NewMethodType, AuthValue = NewMethodValue }); SetStatus("âœ” MÃ©todo aÃ±adido."); await LoadMethodsAsync(null); NewMethodValue = ""; } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task DeleteMethodAsync(object? _) { if (SelectedApp is null || SelectedMethodIndex < 0) return; IsBusy = true; try { await _api.DeleteAppAuthMethodAsync(SelectedApp.AppID, SelectedMethodIndex); SetStatus("âœ” MÃ©todo eliminado."); await LoadMethodsAsync(null); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
+    async Task LoadAsync(object? _) { IsBusy = true; SetStatus("Cargando aplicaciones..."); try { var l = await _api.GetApplicationsAsync(string.IsNullOrWhiteSpace(FilterText) ? null : FilterText); Ui(() => { Apps.Clear(); foreach (var a in l) Apps.Add(a); }); SetStatus($"{l.Count} aplicaciones."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task DeleteAsync(object? _) { if (SelectedApp is null) return; if (MessageBox.Show($"¿Eliminar app '{SelectedApp.AppID}'?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return; IsBusy = true; try { await _api.DeleteApplicationAsync(SelectedApp.AppID); Ui(() => Apps.Remove(SelectedApp)); SetStatus("Aplicación eliminada."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task LoadMethodsAsync(object? _) { if (SelectedApp is null) return; IsBusy = true; try { var l = await _api.GetAppAuthMethodsAsync(SelectedApp.AppID); Ui(() => { Methods.Clear(); foreach (var m in l) Methods.Add(m); }); SetStatus($"{l.Count} métodos de autenticación."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task AddMethodAsync(object? _) { if (SelectedApp is null || string.IsNullOrWhiteSpace(NewMethodValue)) { SetStatus("Valor del método requerido.", true); return; } IsBusy = true; try { await _api.AddAppAuthMethodAsync(SelectedApp.AppID, new AppAuthMethod { AuthType = NewMethodType, AuthValue = NewMethodValue }); SetStatus("Método añadido."); await LoadMethodsAsync(null); NewMethodValue = ""; } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task DeleteMethodAsync(object? _) { if (SelectedApp is null || SelectedMethodIndex < 0) return; IsBusy = true; try { await _api.DeleteAppAuthMethodAsync(SelectedApp.AppID, SelectedMethodIndex); SetStatus("Método eliminado."); await LoadMethodsAsync(null); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // DISCOVERED ACCOUNTS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 public class DiscoveredAccountsViewModel : BaseViewModel
 {
     readonly CyberArkApiService _api;
@@ -348,26 +334,22 @@ public class DiscoveredAccountsViewModel : BaseViewModel
     public AsyncRelayCommand OnboardCommand { get; }
     public AsyncRelayCommand DeleteCommand  { get; }
 
-    async Task LoadAsync(object? _) { IsBusy = true; SetStatus("ðŸ”„ Cargando cuentas descubiertas..."); try { var l = await _api.GetDiscoveredAccountsAsync(string.IsNullOrWhiteSpace(FilterType) ? null : FilterType, string.IsNullOrWhiteSpace(FilterKeyword) ? null : FilterKeyword); Ui(() => { Accounts.Clear(); foreach (var a in l) Accounts.Add(a); }); SetStatus($"âœ” {l.Count} cuentas descubiertas."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task OnboardAsync(object? _) { if (SelectedAccount is null || string.IsNullOrWhiteSpace(OnboardSafe) || string.IsNullOrWhiteSpace(OnboardPlat)) { SetStatus("âš  Safe y Platform obligatorios para incorporar.", true); return; } IsBusy = true; try { await _api.OnboardDiscoveredAccountAsync(SelectedAccount.Id, OnboardSafe, OnboardPlat); Ui(() => Accounts.Remove(SelectedAccount)); SetStatus("âœ” Cuenta incorporada al vault."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task DeleteAsync(object? _) { if (SelectedAccount is null) return; if (MessageBox.Show("Â¿Eliminar cuenta descubierta?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return; IsBusy = true; try { await _api.DeleteDiscoveredAccountAsync(SelectedAccount.Id); Ui(() => Accounts.Remove(SelectedAccount)); SetStatus("âœ” Eliminada."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
+    async Task LoadAsync(object? _) { IsBusy = true; SetStatus("Cargando cuentas descubiertas..."); try { var l = await _api.GetDiscoveredAccountsAsync(string.IsNullOrWhiteSpace(FilterType) ? null : FilterType, string.IsNullOrWhiteSpace(FilterKeyword) ? null : FilterKeyword); Ui(() => { Accounts.Clear(); foreach (var a in l) Accounts.Add(a); }); SetStatus($"{l.Count} cuentas descubiertas."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task OnboardAsync(object? _) { if (SelectedAccount is null || string.IsNullOrWhiteSpace(OnboardSafe) || string.IsNullOrWhiteSpace(OnboardPlat)) { SetStatus("Safe y Platform obligatorios para incorporar.", true); return; } IsBusy = true; try { await _api.OnboardDiscoveredAccountAsync(SelectedAccount.Id, OnboardSafe, OnboardPlat); Ui(() => Accounts.Remove(SelectedAccount)); SetStatus("Cuenta incorporada al vault."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task DeleteAsync(object? _) { if (SelectedAccount is null) return; if (MessageBox.Show("¿Eliminar cuenta descubierta?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return; IsBusy = true; try { await _api.DeleteDiscoveredAccountAsync(SelectedAccount.Id); Ui(() => Accounts.Remove(SelectedAccount)); SetStatus("Eliminada."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SYSTEM HEALTH
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 public class SystemHealthViewModel : BaseViewModel
 {
     readonly CyberArkApiService _api;
     public SystemHealthViewModel(CyberArkApiService api) { _api = api; LoadCommand = new AsyncRelayCommand(LoadAsync); }
     public ObservableCollection<SystemHealthComponent> Components { get; } = new();
     public AsyncRelayCommand LoadCommand { get; }
-    async Task LoadAsync(object? _) { IsBusy = true; SetStatus("ðŸ”„ Verificando salud del sistema..."); try { var l = await _api.GetSystemHealthAsync(); Ui(() => { Components.Clear(); foreach (var c in l) Components.Add(c); }); var allOk = l.SelectMany(c => c.Instances ?? new()).All(i => i.Connected); SetStatus(allOk ? "âœ” Todos los componentes estÃ¡n conectados." : "âš  Hay componentes con problemas.", !allOk); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
+    async Task LoadAsync(object? _) { IsBusy = true; SetStatus("Verificando salud del sistema..."); try { var l = await _api.GetSystemHealthAsync(); Ui(() => { Components.Clear(); foreach (var c in l) Components.Add(c); }); var allOk = l.SelectMany(c => c.Instances ?? new()).All(i => i.Connected); SetStatus(allOk ? "Todos los componentes están conectados." : "Hay componentes con problemas.", !allOk); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // ACCESS REQUESTS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 public class AccessRequestsViewModel : BaseViewModel
 {
     readonly CyberArkApiService _api;
@@ -381,11 +363,10 @@ public class AccessRequestsViewModel : BaseViewModel
     public AsyncRelayCommand ConfirmCommand { get; }
     public AsyncRelayCommand RejectCommand  { get; }
 
-    async Task LoadAsync(object? _) { IsBusy = true; SetStatus("ðŸ”„ Cargando solicitudes..."); try { var l = await _api.GetMyRequestsAsync(); Ui(() => { Requests.Clear(); foreach (var r in l) Requests.Add(r); }); SetStatus($"âœ” {l.Count} solicitudes."); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task ConfirmAsync(object? _) { if (SelectedRequest is null) return; IsBusy = true; try { await _api.ConfirmRequestAsync(SelectedRequest.AccountID, SelectedRequest.RequestID, Reason); SetStatus("âœ” Solicitud confirmada."); await LoadAsync(null); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
-    async Task RejectAsync(object? _)  { if (SelectedRequest is null) return; IsBusy = true; try { await _api.RejectRequestAsync(SelectedRequest.AccountID, SelectedRequest.RequestID, Reason); SetStatus("âœ” Solicitud rechazada."); await LoadAsync(null); } catch (Exception ex) { SetStatus($"âœ– {ex.Message}", true); } finally { IsBusy = false; } }
+    async Task LoadAsync(object? _) { IsBusy = true; SetStatus("Cargando solicitudes..."); try { var l = await _api.GetMyRequestsAsync(); Ui(() => { Requests.Clear(); foreach (var r in l) Requests.Add(r); }); SetStatus($"{l.Count} solicitudes."); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task ConfirmAsync(object? _) { if (SelectedRequest is null) return; IsBusy = true; try { await _api.ConfirmRequestAsync(SelectedRequest.AccountID, SelectedRequest.RequestID, Reason); SetStatus("Solicitud confirmada."); await LoadAsync(null); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
+    async Task RejectAsync(object? _)  { if (SelectedRequest is null) return; IsBusy = true; try { await _api.RejectRequestAsync(SelectedRequest.AccountID, SelectedRequest.RequestID, Reason); SetStatus("Solicitud rechazada."); await LoadAsync(null); } catch (Exception ex) { SetStatus($"{ex.Message}", true); } finally { IsBusy = false; } }
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // CSV GENERATOR
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
