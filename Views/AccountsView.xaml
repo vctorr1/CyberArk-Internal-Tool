@@ -1,0 +1,223 @@
+<UserControl x:Class="CyberArkManager.Views.AccountsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes">
+    <Grid Margin="18,14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>   <!-- Header -->
+            <RowDefinition Height="Auto"/>   <!-- Filters -->
+            <RowDefinition Height="*"/>      <!-- Table + panels split -->
+            <RowDefinition Height="Auto"/>   <!-- Status -->
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+            <md:PackIcon Kind="AccountKey" Width="22" Height="22" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+            <TextBlock Text="Gestión de Cuentas" FontSize="18" FontWeight="Bold" Foreground="White" Margin="8,0,0,0" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding Accounts.Count, StringFormat=' · {0} cuentas'}" FontSize="12" Foreground="#44446A" Margin="6,0,0,0" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- Filters + Search -->
+        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12,8" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="130"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0" Text="{Binding FilterSafe, UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Filtrar Safe" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,8,0" Height="34" FontSize="11"/>
+                <TextBox Grid.Column="1" Text="{Binding FilterSearch, UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Buscar cuenta / usuario / host" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,8,0" Height="34" FontSize="11"/>
+                <ComboBox Grid.Column="2" SelectedValue="{Binding FilterSort}" md:HintAssist.Hint="Ordenar" Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,0,8,0" Height="34" FontSize="11">
+                    <ComboBoxItem Content="userName asc"/>
+                    <ComboBoxItem Content="address asc"/>
+                    <ComboBoxItem Content="safeName asc"/>
+                </ComboBox>
+                <Button Grid.Column="3" Command="{Binding SearchCommand}" Height="34" FontSize="11" Margin="0,0,6,0" Background="{StaticResource AccentBrush}" BorderBrush="{StaticResource AccentBrush}" Style="{StaticResource MaterialDesignRaisedButton}">
+                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Magnify" Width="14" Height="14" VerticalAlignment="Center"/><TextBlock Text=" Buscar" VerticalAlignment="Center"/></StackPanel>
+                </Button>
+                <Button Grid.Column="4" Command="{Binding ClearCommand}" Height="34" FontSize="11" Style="{StaticResource MaterialDesignOutlinedButton}">
+                    <md:PackIcon Kind="FilterRemove" Width="14" Height="14"/>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Main area: split between list and operations panel -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="360"/></Grid.ColumnDefinitions>
+
+            <!-- Left: account table + activity log -->
+            <Grid Grid.Column="0" Margin="0,0,10,0">
+                <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Style="{StaticResource Card}">
+                    <DataGrid ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedAccount}"
+                              AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                              HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                              RowBackground="#1A1A2E" AlternatingRowBackground="#16162A"
+                              BorderThickness="0" Style="{StaticResource MaterialDesignDataGrid}" SelectionMode="Single">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Usuario"    Binding="{Binding UserName}"    Width="130"/>
+                            <DataGridTextColumn Header="Dirección"  Binding="{Binding Address}"     Width="150"/>
+                            <DataGridTextColumn Header="Safe"       Binding="{Binding SafeName}"    Width="130"/>
+                            <DataGridTextColumn Header="Plataforma" Binding="{Binding PlatformId}"  Width="110"/>
+                            <DataGridTextColumn Header="Estado CPM" Binding="{Binding CpmStatus}"   Width="110"/>
+                            <DataGridCheckBoxColumn Header="Auto"   Binding="{Binding AutoManaged}" Width="48"/>
+                            <DataGridTextColumn Header="Creado"     Binding="{Binding CreatedDisplay}"  Width="115" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Modificado" Binding="{Binding ModifiedDisplay}" Width="115" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="ID"         Binding="{Binding Id}"          Width="60"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+
+                <!-- Activity Log (collapsible) -->
+                <Expander Grid.Row="1" Header="📋 Log de Actividad de la Cuenta Seleccionada" Margin="0,8,0,0"
+                          Visibility="{Binding ActivityLog.Count, Converter={StaticResource NullToVis}}">
+                    <Border Style="{StaticResource Card}" Padding="0" MaxHeight="140">
+                        <DataGrid ItemsSource="{Binding ActivityLog}" AutoGenerateColumns="False" IsReadOnly="True"
+                                  HeadersVisibility="Column" CanUserAddRows="False" BorderThickness="0"
+                                  Style="{StaticResource MaterialDesignDataGrid}" FontSize="11">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Fecha"   Binding="{Binding TimeDisplay}" Width="140"/>
+                                <DataGridTextColumn Header="Acción"  Binding="{Binding Action}"      Width="160"/>
+                                <DataGridTextColumn Header="Usuario" Binding="{Binding User}"        Width="120"/>
+                                <DataGridTextColumn Header="Motivo"  Binding="{Binding Reason}"      Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Expander>
+            </Grid>
+
+            <!-- Right: operations panel (tabbed) -->
+            <Border Grid.Column="1" Style="{StaticResource Card}" Padding="0">
+                <TabControl Style="{StaticResource MaterialDesignTabControl}" Padding="0">
+
+                    <!-- ═══ CREATE ═══ -->
+                    <TabItem Header="➕ Crear">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="14">
+                            <StackPanel>
+                                <TextBlock Text="NUEVA CUENTA" FontSize="9" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10"/>
+                                <TextBox Text="{Binding NewAddress,    UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Address / Host *" md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,8" FontSize="12"/>
+                                <TextBox Text="{Binding NewUserName,   UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="User Name *"       md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,8" FontSize="12"/>
+                                <TextBox Text="{Binding NewPlatformId, UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Platform ID *"      md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,8" FontSize="12"/>
+                                <TextBox Text="{Binding NewSafeName,   UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Safe Name *"        md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,8" FontSize="12"/>
+                                <PasswordBox md:HintAssist.Hint="Contraseña inicial (opcional)" md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedPasswordBox}" Margin="0,0,0,8"/>
+                                <CheckBox Content="Gestión automática CPM" IsChecked="{Binding NewAutoManage}" Foreground="#9999BB" Margin="0,0,0,8"/>
+                                <TextBox Text="{Binding NewManualReason, UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Motivo gestión manual"
+                                         Visibility="{Binding NewAutoManage, Converter={StaticResource InvBoolToVis}}"
+                                         md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,8" FontSize="12"/>
+                                <Button Command="{Binding CreateCommand}" Height="36" FontSize="11" Background="{StaticResource AccentBrush}" BorderBrush="{StaticResource AccentBrush}" Style="{StaticResource MaterialDesignRaisedButton}">
+                                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Plus" Width="14" Height="14" VerticalAlignment="Center"/><TextBlock Text=" Crear Cuenta" VerticalAlignment="Center"/></StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!-- ═══ EDITAR (PATCH con selector de campos) ═══ -->
+                    <TabItem Header="✏️ Editar">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="14">
+                            <StackPanel>
+                                <TextBlock Text="SELECCIONA LOS CAMPOS A EDITAR" FontSize="9" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,8"/>
+                                <TextBlock Text="Sólo los campos marcados se enviarán al API (PATCH)" FontSize="10" Foreground="#44446A" Margin="0,0,0,12"/>
+
+                                <!-- Dynamic field selector -->
+                                <ItemsControl ItemsSource="{Binding EditableFields}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Padding="0,4" BorderBrush="#1A1A40" BorderThickness="0,0,0,1">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="{Binding Label}" FontSize="11" Foreground="#9999BB"/>
+                                                        <TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
+                                                                 IsEnabled="{Binding IsSelected}"
+                                                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                                                 FontSize="11" Margin="0,2,0,0" Padding="6,2"
+                                                                 md:HintAssist.Hint="{Binding ApiPath}"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <Button Command="{Binding PatchCommand}" Height="36" FontSize="11" Margin="0,12,0,0"
+                                        Background="#1565C0" BorderBrush="#1565C0" Style="{StaticResource MaterialDesignRaisedButton}">
+                                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="ContentSave" Width="14" Height="14" VerticalAlignment="Center"/><TextBlock Text=" Guardar Campos (PATCH)" VerticalAlignment="Center"/></StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!-- ═══ CONTRASEÑAS ═══ -->
+                    <TabItem Header="🔑 Password">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="14">
+                            <StackPanel>
+                                <TextBlock Text="OPERACIONES DE CONTRASEÑA" FontSize="9" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,12"/>
+
+                                <!-- Motivo / ticket -->
+                                <TextBox Text="{Binding OperationReason, UpdateSourceTrigger=PropertyChanged}"
+                                         md:HintAssist.Hint="Motivo / Ticket (para checkout y retrieve)"
+                                         md:HintAssist.IsFloating="True"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Margin="0,0,0,10" FontSize="12"/>
+
+                                <!-- CPM Operations -->
+                                <TextBlock Text="CPM" FontSize="9" Foreground="#44446A" FontWeight="Bold" Margin="0,0,0,4"/>
+                                <WrapPanel Margin="0,0,0,12">
+                                    <Button Command="{Binding RotateCommand}" Height="32" FontSize="10" Margin="0,0,6,6" Style="{StaticResource MaterialDesignOutlinedButton}"><StackPanel Orientation="Horizontal"><md:PackIcon Kind="KeyChange" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Rotar" VerticalAlignment="Center"/></StackPanel></Button>
+                                    <Button Command="{Binding VerifyCommand}" Height="32" FontSize="10" Margin="0,0,6,6" Style="{StaticResource MaterialDesignOutlinedButton}"><StackPanel Orientation="Horizontal"><md:PackIcon Kind="ShieldCheck" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Verificar" VerticalAlignment="Center"/></StackPanel></Button>
+                                    <Button Command="{Binding ReconcileCommand}" Height="32" FontSize="10" Margin="0,0,0,6" Style="{StaticResource MaterialDesignOutlinedButton}"><StackPanel Orientation="Horizontal"><md:PackIcon Kind="SyncAlert" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Reconciliar" VerticalAlignment="Center"/></StackPanel></Button>
+                                </WrapPanel>
+
+                                <!-- Set Next Password -->
+                                <TextBlock Text="ESTABLECER PRÓXIMA CONTRASEÑA" FontSize="9" Foreground="#44446A" FontWeight="Bold" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding NextPassword, UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Nueva contraseña" md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,6" FontSize="12"/>
+                                <CheckBox Content="Cambiar inmediatamente" IsChecked="{Binding ChangeImmediately}" Foreground="#9999BB" FontSize="11" Margin="0,0,0,6"/>
+                                <Button Command="{Binding SetNextPwdCommand}" Height="32" FontSize="10" Margin="0,0,0,12" Style="{StaticResource MaterialDesignOutlinedButton}">
+                                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="KeyPlus" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Set Next Password" VerticalAlignment="Center"/></StackPanel>
+                                </Button>
+
+                                <!-- Retrieve Password -->
+                                <TextBlock Text="RECUPERAR CONTRASEÑA (Dual Control)" FontSize="9" Foreground="#44446A" FontWeight="Bold" Margin="0,0,0,4"/>
+                                <Button Command="{Binding GetPasswordCommand}" Height="32" FontSize="10" Margin="0,0,0,6" Background="{StaticResource WarnBrush}" BorderBrush="{StaticResource WarnBrush}" Style="{StaticResource MaterialDesignRaisedButton}">
+                                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Eye" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Recuperar Contraseña" VerticalAlignment="Center"/></StackPanel>
+                                </Button>
+                                <Border Background="#1AFF9800" CornerRadius="4" Padding="10,6"
+                                        Visibility="{Binding RetrievedPassword, Converter={StaticResource NullToVis}}">
+                                    <TextBox Text="{Binding RetrievedPassword}" IsReadOnly="True" FontFamily="Consolas" FontSize="12"
+                                             Background="Transparent" BorderThickness="0" Foreground="#FF9800" TextWrapping="Wrap"/>
+                                </Border>
+
+                                <!-- Check In / Out -->
+                                <TextBlock Text="CHECK-IN / CHECK-OUT" FontSize="9" Foreground="#44446A" FontWeight="Bold" Margin="0,12,0,4"/>
+                                <WrapPanel>
+                                    <Button Command="{Binding CheckOutCommand}" Height="32" FontSize="10" Margin="0,0,6,0" Style="{StaticResource MaterialDesignOutlinedButton}"><StackPanel Orientation="Horizontal"><md:PackIcon Kind="Login" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Check-Out" VerticalAlignment="Center"/></StackPanel></Button>
+                                    <Button Command="{Binding CheckInCommand}"  Height="32" FontSize="10" Style="{StaticResource MaterialDesignOutlinedButton}"><StackPanel Orientation="Horizontal"><md:PackIcon Kind="Logout" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Check-In" VerticalAlignment="Center"/></StackPanel></Button>
+                                </WrapPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!-- ═══ ACTIVIDAD + ELIMINAR ═══ -->
+                    <TabItem Header="📋 Más">
+                        <StackPanel Margin="14">
+                            <TextBlock Text="ACTIVIDAD Y OTRAS ACCIONES" FontSize="9" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,12"/>
+                            <Button Command="{Binding ViewActivityCommand}" Height="36" FontSize="11" Margin="0,0,0,8" Style="{StaticResource MaterialDesignOutlinedButton}">
+                                <StackPanel Orientation="Horizontal"><md:PackIcon Kind="History" Width="14" Height="14" VerticalAlignment="Center"/><TextBlock Text=" Ver Log de Actividad" VerticalAlignment="Center"/></StackPanel>
+                            </Button>
+                            <Separator Background="#1A1A40" Margin="0,8"/>
+                            <TextBlock Text="ZONA PELIGROSA" FontSize="9" FontWeight="Bold" Foreground="{StaticResource DangerBrush}" Margin="0,0,0,8"/>
+                            <Button Command="{Binding DeleteCommand}" Height="36" FontSize="11"
+                                    Foreground="{StaticResource DangerBrush}" BorderBrush="{StaticResource DangerBrush}"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}">
+                                <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Delete" Width="14" Height="14" VerticalAlignment="Center"/><TextBlock Text=" Eliminar Cuenta Permanentemente" VerticalAlignment="Center"/></StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </TabItem>
+                </TabControl>
+            </Border>
+        </Grid>
+
+        <!-- Status -->
+        <TextBlock Grid.Row="3" Text="{Binding StatusMessage}" Margin="0,6,0,0"
+                   Foreground="{Binding HasError, Converter={StaticResource BoolToColor}, ConverterParameter='#F44336|#4CAF50'}"
+                   FontSize="11" Visibility="{Binding StatusMessage, Converter={StaticResource NullToVis}}"/>
+    </Grid>
+</UserControl>
