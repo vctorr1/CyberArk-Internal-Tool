@@ -1,0 +1,70 @@
+<!-- PsmSessionsView.xaml -->
+<UserControl x:Class="CyberArkManager.Views.PsmSessionsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes">
+    <Grid Margin="18,14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+            <md:PackIcon Kind="DesktopClassic" Width="22" Height="22" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+            <TextBlock Text="Sesiones PSM" FontSize="18" FontWeight="Bold" Foreground="White" Margin="8,0,0,0" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding Sessions.Count, StringFormat=' · {0} sesiones'}" FontSize="12" Foreground="#44446A" Margin="6,0,0,0" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12,8" Margin="0,0,0,10">
+            <WrapPanel>
+                <TextBox Text="{Binding FilterSafe, UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Filtrar Safe" Style="{StaticResource MaterialDesignOutlinedTextBox}" Width="160" Height="34" Margin="0,0,8,0" FontSize="11"/>
+                <TextBox Text="{Binding FilterUser, UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Filtrar Usuario" Style="{StaticResource MaterialDesignOutlinedTextBox}" Width="160" Height="34" Margin="0,0,8,0" FontSize="11"/>
+                <Button Command="{Binding LoadActiveCommand}"  Height="34" FontSize="11" Margin="0,0,8,0" Background="{StaticResource AccentBrush}" BorderBrush="{StaticResource AccentBrush}" Style="{StaticResource MaterialDesignRaisedButton}">
+                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="PlayCircle" Width="14" Height="14" VerticalAlignment="Center"/><TextBlock Text=" Sesiones Activas" VerticalAlignment="Center"/></StackPanel>
+                </Button>
+                <Button Command="{Binding LoadHistoryCommand}" Height="34" FontSize="11" Margin="0,0,8,0" Style="{StaticResource MaterialDesignOutlinedButton}">
+                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="History" Width="14" Height="14" VerticalAlignment="Center"/><TextBlock Text=" Historial" VerticalAlignment="Center"/></StackPanel>
+                </Button>
+                <Button Command="{Binding TerminateCommand}"   Height="34" FontSize="11" Foreground="{StaticResource DangerBrush}" BorderBrush="{StaticResource DangerBrush}" Style="{StaticResource MaterialDesignOutlinedButton}">
+                    <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Stop" Width="14" Height="14" VerticalAlignment="Center"/><TextBlock Text=" Terminar Sesión" VerticalAlignment="Center"/></StackPanel>
+                </Button>
+            </WrapPanel>
+        </Border>
+
+        <Border Grid.Row="2" Style="{StaticResource Card}">
+            <DataGrid ItemsSource="{Binding Sessions}" SelectedItem="{Binding SelectedSession}"
+                      AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                      HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                      RowBackground="#1A1A2E" AlternatingRowBackground="#16162A"
+                      BorderThickness="0" Style="{StaticResource MaterialDesignDataGrid}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Usuario"     Binding="{Binding User}"              Width="130"/>
+                    <DataGridTextColumn Header="Máquina"     Binding="{Binding RemoteMachine}"     Width="160"/>
+                    <DataGridTextColumn Header="Cuenta"      Binding="{Binding AccountName}"       Width="130"/>
+                    <DataGridTextColumn Header="Plataforma"  Binding="{Binding AccountPlatformID}" Width="110"/>
+                    <DataGridTextColumn Header="Protocolo"   Binding="{Binding Protocol}"          Width="80"/>
+                    <DataGridTextColumn Header="Inicio"      Binding="{Binding StartDisplay}"      Width="130"/>
+                    <DataGridTextColumn Header="Fin"         Binding="{Binding EndDisplay}"        Width="130"/>
+                    <DataGridTextColumn Header="Duración"    Binding="{Binding DurationDisplay}"   Width="90"/>
+                    <DataGridTextColumn Header="Estado"      Binding="{Binding Status}"            Width="80"/>
+                    <DataGridTextColumn Header="Riesgo"      Binding="{Binding RiskScore}"         Width="60"/>
+                </DataGrid.Columns>
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow" BasedOn="{StaticResource MaterialDesignDataGridRow}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                <Setter Property="Foreground" Value="#4CAF50"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
+            </DataGrid>
+        </Border>
+
+        <TextBlock Grid.Row="3" Text="{Binding StatusMessage}" Margin="0,6,0,0" FontSize="11"
+                   Foreground="{Binding HasError, Converter={StaticResource BoolToColor}, ConverterParameter='#F44336|#4CAF50'}"
+                   Visibility="{Binding StatusMessage, Converter={StaticResource NullToVis}}"/>
+    </Grid>
+</UserControl>
