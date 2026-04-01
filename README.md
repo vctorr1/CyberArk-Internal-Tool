@@ -1,39 +1,36 @@
 # CyberArk Manager
 
-Aplicación WPF en .NET 8 para operar CyberArk PVWA mediante API REST, con soporte de trabajo local, generador CSV, plantillas cifradas y operaciones masivas.
+Aplicación de escritorio para Windows, desarrollada en WPF sobre .NET 8, orientada a la operación técnica de entornos CyberArk PVWA mediante API REST.
 
-## Estado actual
+El proyecto centraliza en una única herramienta tareas habituales de administración, carga masiva y preparación offline, manteniendo una arquitectura MVVM, separación por servicios y almacenamiento local protegido para la configuración sensible.
 
-El proyecto compila y puede ejecutarse en:
+## Alcance funcional
 
-- `modo local`, sin conexión a PVWA
-- `modo conectado`, con sesión real en PVWA
+CyberArk Manager cubre actualmente las siguientes áreas:
 
-## Funcionalidades principales
+- Autenticación contra PVWA por CyberArk, LDAP, RADIUS y Windows.
+- Modo local para trabajo offline sin acceso al entorno corporativo.
+- Gestión de cuentas, safes, usuarios, plataformas, sesiones PSM y aplicaciones.
+- Generación e importación de CSV para altas masivas.
+- Plantillas reutilizables y snapshots locales cifrados.
+- Subida masiva por API y operaciones auxiliares de enlace de cuentas.
 
-- Inicio de sesión CyberArk, LDAP, RADIUS y Windows.
-- Modo local para trabajar sin acceso a PVWA.
-- Gestión de cuentas, safes, usuarios, plataformas, sesiones PSM, aplicaciones y salud del sistema.
-- Generador CSV con importación desde `csv`, `txt` o texto pegado.
-- Plantillas de aplicación y snapshots procesados almacenados de forma cifrada.
-- Vista previa en ventana independiente.
-- Subida masiva por API.
-- Enlace masivo de cuentas de logon o reconciliación por servidor.
+## Principios del proyecto
+
+- Arquitectura MVVM con separación clara entre vistas, lógica de presentación y servicios.
+- Integración con CyberArk exclusivamente mediante API REST.
+- Persistencia local protegida con DPAPI para datos sensibles.
+- Código preparado para operación técnica y evolución incremental.
 
 ## Requisitos
 
-- Windows 10 u 11
-- .NET 8 SDK
+- Windows 10 o Windows 11 de 64 bits.
+- .NET 8 SDK para compilación desde código fuente.
 
-## Compilación
+## Ejecución desde código fuente
 
 ```powershell
 dotnet build .\CyberArkManager.csproj
-```
-
-## Ejecución
-
-```powershell
 dotnet run --project .\CyberArkManager.csproj
 ```
 
@@ -43,26 +40,29 @@ dotnet run --project .\CyberArkManager.csproj
 dotnet test .\CyberArkManager.Tests\CyberArkManager.Tests.csproj
 ```
 
-## Probar la API sin PVWA
+La solución incluye pruebas unitarias para:
 
-Sí. La solución incluye pruebas unitarias de la capa API con `HttpMessageHandler` simulado, por lo que se puede validar:
+- lógica de CSV
+- flujo local de la aplicación
+- capa API sin necesidad de acceso real a PVWA
 
-- la URL generada
-- el verbo HTTP
-- el JSON enviado
-- la paginación
+## Publicación
 
-Consulta [PRUEBAS_API_SIN_PVWA](docs/PRUEBAS_API_SIN_PVWA.md).
+La aplicación puede publicarse como ejecutable único para Windows mediante `dotnet publish` en modo `Release`, con despliegue autocontenido.
 
 ## Seguridad
 
-- La URL de PVWA y preferencias locales se guardan cifradas con DPAPI.
-- Las plantillas y snapshots CSV locales se almacenan cifrados.
-- Las contraseñas no se persisten en texto plano.
-- Los logs evitan exponer secretos sensibles.
+- La URL de PVWA y la configuración local se almacenan cifradas.
+- Las plantillas y snapshots procesados se guardan protegidos en el perfil del usuario.
+- Las credenciales no se persisten en texto plano.
+- Los logs evitan exponer información sensible.
 
 ## Documentación
 
 - [Arquitectura técnica](docs/ARQUITECTURA_TECNICA.md)
 - [Guía de uso](docs/GUIA_DE_USO.md)
 - [Pruebas API sin PVWA](docs/PRUEBAS_API_SIN_PVWA.md)
+
+## Estado de entrega
+
+El repositorio mantiene una versión funcional compilable y preparada para distribución como ejecutable único en Windows.
