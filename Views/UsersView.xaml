@@ -107,7 +107,12 @@
 
                                 <Separator Background="#1A1A40" Margin="0,0,0,12"/>
                                 <TextBlock Text="RESETEAR CONTRASEÑA" FontSize="9" Foreground="#44446A" FontWeight="Bold" Margin="0,0,0,6"/>
-                                <TextBox Text="{Binding ResetPassword, UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Nueva contraseña" md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,8" FontSize="12"/>
+                                <PasswordBox x:Name="ResetUserPasswordBox"
+                                             md:HintAssist.Hint="Nueva contraseña"
+                                             md:HintAssist.IsFloating="True"
+                                             Style="{StaticResource MaterialDesignOutlinedPasswordBox}"
+                                             PasswordChanged="ResetUserPasswordChanged"
+                                             Margin="0,0,0,8" FontSize="12"/>
                                 <Button Command="{Binding ResetPasswordCommand}" Height="34" FontSize="11" Margin="0,0,0,16" Style="{StaticResource MaterialDesignOutlinedButton}">
                                     <StackPanel Orientation="Horizontal"><md:PackIcon Kind="LockReset" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Restablecer contraseña" VerticalAlignment="Center"/></StackPanel>
                                 </Button>

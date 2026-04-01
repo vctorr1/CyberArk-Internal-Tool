@@ -11,13 +11,14 @@ public class UserSession : ObservableModel
     private DateTime _lastRenew;
     private DateTime _hardExpiry;
 
-    public string Token
+    internal string Token
     {
         get => _token;
         set
         {
-            if (SetProperty(ref _token, value))
+            if (_token != value)
             {
+                _token = value;
                 OnPropertyChanged(nameof(IsActive));
             }
         }
@@ -212,7 +213,6 @@ public class CsvTemplate : ObservableModel
         PlatformId = source.PlatformId,
         Address = source.Address,
         UserName = source.UserName,
-        Password = source.Password,
         Description = source.Description,
         AutoManagement = source.AutoManagement,
         ManualReason = source.ManualReason,

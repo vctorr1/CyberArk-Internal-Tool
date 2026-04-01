@@ -2,6 +2,7 @@ using System.IO;
 using System.Net.Http;
 using System.Net;
 using System.Windows;
+using System.Diagnostics;
 using CyberArkManager.Helpers;
 using CyberArkManager.Models;
 using CyberArkManager.Services;
@@ -37,16 +38,16 @@ public partial class App : Application
         var handler = new HttpClientHandler();
         handler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
         handler.MaxConnectionsPerServer = 16;
-        if (configuration.AcceptAllCertificates)
+        if (ShouldAllowInsecureTls(configuration))
         {
-            Log.Warning("TLS certificate validation disabled. Use only in lab environments.");
+            Log.Warning("TLS certificate validation disabled for this debug session.");
             handler.ServerCertificateCustomValidationCallback =
                 HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
         }
 
         var httpClient = new HttpClient(handler)
         {
-            Timeout = Timeout.InfiniteTimeSpan
+            Timeout = TimeSpan.FromSeconds(30)
         };
         httpClient.DefaultRequestHeaders.Add("User-Agent", "CyberArkManager/2.0 (.NET 8)");
 
@@ -100,6 +101,31 @@ public partial class App : Application
                 shared: true)
             .WriteTo.Debug()
             .CreateLogger();
+    }
+
+    private static bool ShouldAllowInsecureTls(AppConfiguration configuration)
+    {
+        if (!configuration.AcceptAllCertificates)
+        {
+            return false;
+        }
+
+#if DEBUG
+        var envFlag = Environment.GetEnvironmentVariable("CYBERARK_MANAGER_ALLOW_INSECURE_TLS");
+        var allowInsecureTls =
+            string.Equals(envFlag, "true", StringComparison.OrdinalIgnoreCase) &&
+            Debugger.IsAttached;
+
+        if (!allowInsecureTls)
+        {
+            Log.Warning("Ignoring AcceptAllCertificates. Set CYBERARK_MANAGER_ALLOW_INSECURE_TLS=true and attach a debugger to enable it in debug.");
+        }
+
+        return allowInsecureTls;
+#else
+        Log.Warning("Ignoring AcceptAllCertificates in production builds.");
+        return false;
+#endif
     }
 
     private void RegisterGlobalExceptionLogging()

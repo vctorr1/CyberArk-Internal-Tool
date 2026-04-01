@@ -27,13 +27,14 @@ public class LoginViewModel : BaseViewModel
 
     private string _url = string.Empty;
     private string _user = string.Empty;
+    private string _password = string.Empty;
     private string _method = "Local";
     private bool _remember = true;
     private int _hb = 10;
 
     public string PvwaUrl { get => _url; set => Set(ref _url, value); }
     public string Username { get => _user; set => Set(ref _user, value); }
-    public string Password { get; set; } = string.Empty;
+    public string Password { get => _password; set => Set(ref _password, value); }
     public string SelectedAuthMethod
     {
         get => _method;
@@ -59,6 +60,7 @@ public class LoginViewModel : BaseViewModel
 
     public AsyncRelayCommand LoginCommand { get; }
     public event EventHandler<UserSession>? LoginSucceeded;
+    public event EventHandler? PasswordResetRequested;
 
     private async Task DoLoginAsync(object? _)
     {
@@ -85,6 +87,7 @@ public class LoginViewModel : BaseViewModel
 
         try
         {
+            var password = Password;
             UserSession session;
             if (IsLocalMode)
             {
@@ -106,7 +109,7 @@ public class LoginViewModel : BaseViewModel
             }
             else
             {
-                session = await _auth.LoginAsync(PvwaUrl.Trim(), Username.Trim(), Password, SelectedAuthMethod, HeartbeatMin);
+                session = await _auth.LoginAsync(PvwaUrl.Trim(), Username.Trim(), password, SelectedAuthMethod, HeartbeatMin);
                 session.AuthMode = SelectedAuthMethod;
             }
 
@@ -130,7 +133,6 @@ public class LoginViewModel : BaseViewModel
                 ? $"Modo local activo: {session.Username}.{persistenceWarning ?? string.Empty}"
                 : $"Sesión iniciada: {session.Username}.{persistenceWarning ?? string.Empty}");
 
-            Password = string.Empty;
             LoginSucceeded?.Invoke(this, session);
         }
         catch (Exception ex)
@@ -140,8 +142,20 @@ public class LoginViewModel : BaseViewModel
         }
         finally
         {
+            ClearPassword();
             IsBusy = false;
         }
+    }
+
+    void ClearPassword()
+    {
+        if (!string.IsNullOrEmpty(_password))
+        {
+            _password = string.Empty;
+            OnPropertyChanged(nameof(Password));
+        }
+
+        PasswordResetRequested?.Invoke(this, EventArgs.Empty);
     }
 }
 

@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http;
 using System.Collections.Concurrent;
 using System.Text;
@@ -13,22 +13,22 @@ using Serilog;
 namespace CyberArkManager.Services;
 
 /// <summary>
-/// Complete wrapper for CyberArk PVWA REST API v2 — all official endpoints.
+/// Complete wrapper for CyberArk PVWA REST API v2 â€” all official endpoints.
 /// Improvements over v1:
-///   • Polly retry policy (3 attempts, exponential back-off) for transient HTTP errors.
-///   • Per-request timeout via CancellationTokenSource (30 s default).
-///   • Structured audit logging via Serilog for all mutating operations.
-///   • HTTP client layer separated from DTO mapping via GetJson / PostJson helpers.
+///   â€¢ Polly retry policy (3 attempts, exponential back-off) for transient HTTP errors.
+///   â€¢ Per-request timeout via CancellationTokenSource (30 s default).
+///   â€¢ Structured audit logging via Serilog for all mutating operations.
+///   â€¢ HTTP client layer separated from DTO mapping via GetJson / PostJson helpers.
 /// </summary>
 public class CyberArkApiService
 {
-    // ── Constants ──────────────────────────────────────────────────────────
+    // â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     private static readonly TimeSpan DefaultRequestTimeout = TimeSpan.FromSeconds(30);
     private const int RetryCount = 3;
     private const int MaxBulkParallelism = 4;
     private const int MaxLinkParallelism = 4;
 
-    // ── Dependencies ───────────────────────────────────────────────────────
+    // â”€â”€ Dependencies â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     private readonly HttpClient  _http;
     private readonly AuthService _auth;
     private static readonly ILogger _log = Log.ForContext<CyberArkApiService>();
@@ -41,7 +41,7 @@ public class CyberArkApiService
 
     /// <summary>
     /// Polly retry policy: retries on 5xx and network errors, with exponential back-off.
-    /// Does NOT retry on 401/403/404/409 — those are logic errors, not transient failures.
+    /// Does NOT retry on 401/403/404/409 â€” those are logic errors, not transient failures.
     /// </summary>
     private static readonly AsyncRetryPolicy<HttpResponseMessage> RetryPolicy =
         HttpPolicyExtensions
@@ -53,18 +53,18 @@ public class CyberArkApiService
                 onRetry: (outcome, delay, attempt, _) =>
                 {
                     var status = outcome.Result?.StatusCode.ToString() ?? outcome.Exception?.GetType().Name;
-                    Log.Warning("Retry {Attempt}/{Max} after {Delay}s — {Status}",
+                    Log.Warning("Retry {Attempt}/{Max} after {Delay}s â€” {Status}",
                         attempt, RetryCount, delay.TotalSeconds, status);
                 });
 
     public CyberArkApiService(HttpClient http, AuthService auth) { _http = http; _auth = auth; }
 
     private string Base => _auth.CurrentSession?.PvwaUrl
-        ?? throw new InvalidOperationException("No hay sesión activa. Inicia sesión primero.");
+        ?? throw new InvalidOperationException("No hay sesiÃ³n activa. Inicia sesiÃ³n primero.");
 
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // ACCOUNTS
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     public virtual async Task<List<Account>> GetAccountsAsync(string? safe = null, string? search = null,
         string? searchType = null, string? sort = null, CancellationToken ct = default)
@@ -94,7 +94,7 @@ public class CyberArkApiService
 
     public async Task<Account> CreateAccountAsync(AccountCreateRequest req, CancellationToken ct = default)
     {
-        _log.Information("CreateAccount. User={User} Safe={Safe}", req.UserName, req.SafeName);
+        _log.Information("CreateAccount requested.");
         return await PostJson<Account>($"{Base}/API/Accounts", req, ct)
                ?? throw new InvalidOperationException("Error al crear la cuenta.");
     }
@@ -102,9 +102,13 @@ public class CyberArkApiService
     public async Task<Account> PatchAccountAsync(string id, List<PatchOperation> ops, CancellationToken ct = default)
     {
         _log.Information("PatchAccount. Id={Id} Ops={Count}", id, ops.Count);
-        var content = new StringContent(JsonSerializer.Serialize(ops, J), Encoding.UTF8, "application/json");
-        var req = new HttpRequestMessage(HttpMethod.Patch, $"{Base}/API/Accounts/{id}") { Content = content };
-        var r = await ExecuteWithRetry(() => _http.SendAsync(req, ct), ct);
+        var payload = JsonSerializer.Serialize(ops, J);
+        var r = await SendWithRetry(
+            () => new HttpRequestMessage(HttpMethod.Patch, $"{Base}/API/Accounts/{id}")
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json")
+            },
+            ct);
         await EnsureOk(r, ct);
         return JsonSerializer.Deserialize<Account>(await r.Content.ReadAsStringAsync(ct), J)!;
     }
@@ -112,23 +116,23 @@ public class CyberArkApiService
     public async Task DeleteAccountAsync(string id, CancellationToken ct = default)
     {
         _log.Warning("DeleteAccount. Id={Id}", id);
-        await EnsureOk(await ExecuteWithRetry(() => _http.DeleteAsync($"{Base}/API/Accounts/{id}", ct), ct), ct);
+        await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.DeleteAsync($"{Base}/API/Accounts/{id}", timeoutToken), ct), ct);
     }
 
-    // — Password Operations —
+    // â€” Password Operations â€”
     public async Task ChangePasswordAsync(string id, CancellationToken ct = default)
     {
         _log.Information("ChangePassword triggered. AccountId={Id}", id);
-        await EnsureOk(await ExecuteWithRetry(() => _http.PostAsync($"{Base}/API/Accounts/{id}/Change", null, ct), ct), ct);
+        await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.PostAsync($"{Base}/API/Accounts/{id}/Change", null, timeoutToken), ct), ct);
     }
 
     public async Task VerifyPasswordAsync(string id, CancellationToken ct = default)
-        => await EnsureOk(await ExecuteWithRetry(() => _http.PostAsync($"{Base}/API/Accounts/{id}/Verify", null, ct), ct), ct);
+        => await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.PostAsync($"{Base}/API/Accounts/{id}/Verify", null, timeoutToken), ct), ct);
 
     public async Task ReconcilePasswordAsync(string id, CancellationToken ct = default)
     {
         _log.Information("ReconcilePassword. AccountId={Id}", id);
-        await EnsureOk(await ExecuteWithRetry(() => _http.PostAsync($"{Base}/API/Accounts/{id}/Reconcile", null, ct), ct), ct);
+        await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.PostAsync($"{Base}/API/Accounts/{id}/Reconcile", null, timeoutToken), ct), ct);
     }
 
     public async Task SetNextPasswordAsync(string id, string newPassword, bool changeImmediately = false, CancellationToken ct = default)
@@ -141,27 +145,27 @@ public class CyberArkApiService
     public async Task<string> GetPasswordValueAsync(string id, string reason, string ticketId = "",
         string ticketingSystem = "", int connectionMode = 0, CancellationToken ct = default)
     {
-        _log.Warning("PasswordRetrieval. AccountId={Id} Reason={Reason} Ticket={Ticket}", id, reason, ticketId);
+        _log.Warning("PasswordRetrieval. AccountId={Id}", id);
         var payload = new { reason, TicketId = ticketId, TicketingSystemName = ticketingSystem, ConnectionTypeRequest = connectionMode };
         var r = await PostRaw($"{Base}/API/Accounts/{id}/Password/Retrieve", payload, ct);
         await EnsureOk(r, ct);
         return (await r.Content.ReadAsStringAsync(ct)).Trim('"');
     }
 
-    // — Check-in / Check-out —
+    // â€” Check-in / Check-out â€”
     public async Task CheckOutAsync(string id, string reason = "", CancellationToken ct = default)
     {
-        _log.Information("CheckOut. AccountId={Id} Reason={Reason}", id, reason);
+        _log.Information("CheckOut. AccountId={Id}", id);
         await EnsureOk(await PostRaw($"{Base}/API/Accounts/{id}/CheckOut", new { reason }, ct), ct);
     }
 
     public async Task CheckInAsync(string id, CancellationToken ct = default)
     {
         _log.Information("CheckIn. AccountId={Id}", id);
-        await EnsureOk(await ExecuteWithRetry(() => _http.PostAsync($"{Base}/API/Accounts/{id}/CheckIn", null, ct), ct), ct);
+        await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.PostAsync($"{Base}/API/Accounts/{id}/CheckIn", null, timeoutToken), ct), ct);
     }
 
-    // — Account Groups —
+    // â€” Account Groups â€”
     public virtual async Task LinkAccountAsync(string id, string extraPassId, int extraPassIndex, CancellationToken ct = default)
         => await EnsureOk(await PostRaw($"{Base}/API/Accounts/{id}/LinkAccount",
             new { extraPasswordIndex = extraPassIndex, linked = true, associatedLinkedAccountId = extraPassId }, ct), ct);
@@ -170,16 +174,16 @@ public class CyberArkApiService
         => await EnsureOk(await PostRaw($"{Base}/API/Accounts/{id}/LinkAccount",
             new { extraPasswordIndex = extraPassIndex, linked = false }, ct), ct);
 
-    // — Activity Log —
+    // â€” Activity Log â€”
     public async Task<List<AccountActivityLog>> GetAccountActivitiesAsync(string id, CancellationToken ct = default)
     {
         var r = await GetJson<AccountActivitiesResponse>($"{Base}/API/Accounts/{id}/Activities", ct);
         return r?.Activities ?? new();
     }
 
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // SAFES
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     public async Task<List<Safe>> GetSafesAsync(string? search = null, CancellationToken ct = default)
     {
@@ -201,16 +205,20 @@ public class CyberArkApiService
 
     public async Task<Safe> CreateSafeAsync(SafeCreateRequest req, CancellationToken ct = default)
     {
-        _log.Information("CreateSafe. Name={Name}", req.SafeName);
+        _log.Information("CreateSafe requested.");
         return await PostJson<Safe>($"{Base}/API/Safes", req, ct) ?? throw new InvalidOperationException("Error al crear el Safe.");
     }
 
     public async Task<Safe> UpdateSafeAsync(string safeUrlId, SafeCreateRequest req, CancellationToken ct = default)
     {
         _log.Information("UpdateSafe. SafeId={Id}", safeUrlId);
-        var content = new StringContent(JsonSerializer.Serialize(req, J), Encoding.UTF8, "application/json");
-        var r = new HttpRequestMessage(HttpMethod.Put, $"{Base}/API/Safes/{safeUrlId}") { Content = content };
-        var resp = await ExecuteWithRetry(() => _http.SendAsync(r, ct), ct);
+        var payload = JsonSerializer.Serialize(req, J);
+        var resp = await SendWithRetry(
+            () => new HttpRequestMessage(HttpMethod.Put, $"{Base}/API/Safes/{safeUrlId}")
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json")
+            },
+            ct);
         await EnsureOk(resp, ct);
         return JsonSerializer.Deserialize<Safe>(await resp.Content.ReadAsStringAsync(ct), J)!;
     }
@@ -218,10 +226,10 @@ public class CyberArkApiService
     public async Task DeleteSafeAsync(string safeUrlId, CancellationToken ct = default)
     {
         _log.Warning("DeleteSafe. SafeId={Id}", safeUrlId);
-        await EnsureOk(await ExecuteWithRetry(() => _http.DeleteAsync($"{Base}/API/Safes/{safeUrlId}", ct), ct), ct);
+        await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.DeleteAsync($"{Base}/API/Safes/{safeUrlId}", timeoutToken), ct), ct);
     }
 
-    // — Safe Members —
+    // â€” Safe Members â€”
     public async Task<List<SafeMember>> GetSafeMembersAsync(string safeUrlId, CancellationToken ct = default)
     {
         var results = new List<SafeMember>();
@@ -237,31 +245,35 @@ public class CyberArkApiService
 
     public async Task<SafeMember> AddSafeMemberAsync(string safeUrlId, string memberName, string memberType, SafePermissions perms, CancellationToken ct = default)
     {
-        _log.Information("AddSafeMember. Safe={Safe} Member={Member}", safeUrlId, memberName);
+        _log.Information("AddSafeMember requested.");
         return await PostJson<SafeMember>($"{Base}/API/Safes/{safeUrlId}/Members",
                    new { memberName, memberType, permissions = perms }, ct)
-               ?? throw new InvalidOperationException("Error al añadir miembro.");
+               ?? throw new InvalidOperationException("Error al aÃ±adir miembro.");
     }
 
     public async Task<SafeMember> UpdateSafeMemberAsync(string safeUrlId, string memberName, SafePermissions perms, CancellationToken ct = default)
     {
-        _log.Information("UpdateSafeMember. Safe={Safe} Member={Member}", safeUrlId, memberName);
-        var content = new StringContent(JsonSerializer.Serialize(new { permissions = perms }, J), Encoding.UTF8, "application/json");
-        var req = new HttpRequestMessage(HttpMethod.Put, $"{Base}/API/Safes/{safeUrlId}/Members/{memberName}") { Content = content };
-        var resp = await ExecuteWithRetry(() => _http.SendAsync(req, ct), ct);
+        _log.Information("UpdateSafeMember requested.");
+        var payload = JsonSerializer.Serialize(new { permissions = perms }, J);
+        var resp = await SendWithRetry(
+            () => new HttpRequestMessage(HttpMethod.Put, $"{Base}/API/Safes/{safeUrlId}/Members/{memberName}")
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json")
+            },
+            ct);
         await EnsureOk(resp, ct);
         return JsonSerializer.Deserialize<SafeMember>(await resp.Content.ReadAsStringAsync(ct), J)!;
     }
 
     public async Task DeleteSafeMemberAsync(string safeUrlId, string memberName, CancellationToken ct = default)
     {
-        _log.Warning("DeleteSafeMember. Safe={Safe} Member={Member}", safeUrlId, memberName);
-        await EnsureOk(await ExecuteWithRetry(() => _http.DeleteAsync($"{Base}/API/Safes/{safeUrlId}/Members/{memberName}", ct), ct), ct);
+        _log.Warning("DeleteSafeMember requested.");
+        await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.DeleteAsync($"{Base}/API/Safes/{safeUrlId}/Members/{memberName}", timeoutToken), ct), ct);
     }
 
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // PLATFORMS
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     public async Task<List<Platform>> GetPlatformsAsync(bool? active = null, string? search = null, CancellationToken ct = default)
     {
@@ -278,10 +290,10 @@ public class CyberArkApiService
            ?? throw new InvalidOperationException("Plataforma no encontrada.");
 
     public async Task ActivatePlatformAsync(string platformId, CancellationToken ct = default)
-        => await EnsureOk(await ExecuteWithRetry(() => _http.PostAsync($"{Base}/API/Platforms/{platformId}/activate", null, ct), ct), ct);
+        => await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.PostAsync($"{Base}/API/Platforms/{platformId}/activate", null, timeoutToken), ct), ct);
 
     public async Task DeactivatePlatformAsync(string platformId, CancellationToken ct = default)
-        => await EnsureOk(await ExecuteWithRetry(() => _http.PostAsync($"{Base}/API/Platforms/{platformId}/deactivate", null, ct), ct), ct);
+        => await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.PostAsync($"{Base}/API/Platforms/{platformId}/deactivate", null, timeoutToken), ct), ct);
 
     public async Task DuplicatePlatformAsync(string platformId, string newName, string? description = null, CancellationToken ct = default)
         => await EnsureOk(await PostRaw($"{Base}/API/Platforms/{platformId}/duplicate",
@@ -290,12 +302,12 @@ public class CyberArkApiService
     public async Task DeletePlatformAsync(string platformId, CancellationToken ct = default)
     {
         _log.Warning("DeletePlatform. PlatformId={Id}", platformId);
-        await EnsureOk(await ExecuteWithRetry(() => _http.DeleteAsync($"{Base}/API/Platforms/{platformId}", ct), ct), ct);
+        await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.DeleteAsync($"{Base}/API/Platforms/{platformId}", timeoutToken), ct), ct);
     }
 
     public async Task<byte[]> ExportPlatformAsync(string platformId, CancellationToken ct = default)
     {
-        var r = await ExecuteWithRetry(() => _http.PostAsync($"{Base}/API/Platforms/{platformId}/Export", null, ct), ct);
+        var r = await ExecuteWithRetry(timeoutToken => _http.PostAsync($"{Base}/API/Platforms/{platformId}/Export", null, timeoutToken), ct);
         await EnsureOk(r, ct);
         return await r.Content.ReadAsByteArrayAsync(ct);
     }
@@ -303,15 +315,18 @@ public class CyberArkApiService
     public async Task ImportPlatformAsync(byte[] zipData, CancellationToken ct = default)
     {
         _log.Information("ImportPlatform. SizeBytes={Size}", zipData.Length);
-        using var form = new MultipartFormDataContent();
-        form.Add(new ByteArrayContent(zipData), "file", "platform.zip");
-        var r = await ExecuteWithRetry(() => _http.PostAsync($"{Base}/API/Platforms/Import", form, ct), ct);
+        var r = await ExecuteWithRetry(async timeoutToken =>
+        {
+            using var form = new MultipartFormDataContent();
+            form.Add(new ByteArrayContent(zipData), "file", "platform.zip");
+            return await _http.PostAsync($"{Base}/API/Platforms/Import", form, timeoutToken);
+        }, ct);
         await EnsureOk(r, ct);
     }
 
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // USERS
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     public async Task<List<CyberArkUser>> GetUsersAsync(string? filter = null, string? userType = null, CancellationToken ct = default)
     {
@@ -328,7 +343,7 @@ public class CyberArkApiService
 
     public async Task<CyberArkUser> CreateUserAsync(UserCreateRequest req, CancellationToken ct = default)
     {
-        _log.Information("CreateUser. Username={User}", req.Username);
+        _log.Information("CreateUser requested.");
         return await PostJson<CyberArkUser>($"{Base}/API/Users", req, ct)
                ?? throw new InvalidOperationException("Error al crear usuario.");
     }
@@ -336,9 +351,13 @@ public class CyberArkApiService
     public async Task<CyberArkUser> UpdateUserAsync(int userId, object updateData, CancellationToken ct = default)
     {
         _log.Information("UpdateUser. UserId={Id}", userId);
-        var content = new StringContent(JsonSerializer.Serialize(updateData, J), Encoding.UTF8, "application/json");
-        var req = new HttpRequestMessage(HttpMethod.Put, $"{Base}/API/Users/{userId}") { Content = content };
-        var r = await ExecuteWithRetry(() => _http.SendAsync(req, ct), ct);
+        var payload = JsonSerializer.Serialize(updateData, J);
+        var r = await SendWithRetry(
+            () => new HttpRequestMessage(HttpMethod.Put, $"{Base}/API/Users/{userId}")
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json")
+            },
+            ct);
         await EnsureOk(r, ct);
         return JsonSerializer.Deserialize<CyberArkUser>(await r.Content.ReadAsStringAsync(ct), J)!;
     }
@@ -346,11 +365,11 @@ public class CyberArkApiService
     public async Task DeleteUserAsync(int userId, CancellationToken ct = default)
     {
         _log.Warning("DeleteUser. UserId={Id}", userId);
-        await EnsureOk(await ExecuteWithRetry(() => _http.DeleteAsync($"{Base}/API/Users/{userId}", ct), ct), ct);
+        await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.DeleteAsync($"{Base}/API/Users/{userId}", timeoutToken), ct), ct);
     }
 
     public async Task ActivateUserAsync(int userId, CancellationToken ct = default)
-        => await EnsureOk(await ExecuteWithRetry(() => _http.PostAsync($"{Base}/API/Users/{userId}/Activate", null, ct), ct), ct);
+        => await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.PostAsync($"{Base}/API/Users/{userId}/Activate", null, timeoutToken), ct), ct);
 
     public async Task SuspendUserAsync(int userId, CancellationToken ct = default)
         => await EnsureOk(await PostRaw($"{Base}/API/Users/{userId}/Disable", new { }, ct), ct);
@@ -364,14 +383,14 @@ public class CyberArkApiService
 
     public async Task AddUserToGroupAsync(int groupId, string username, CancellationToken ct = default)
     {
-        _log.Information("AddUserToGroup. GroupId={Group} User={User}", groupId, username);
+        _log.Information("AddUserToGroup requested. GroupId={Group}", groupId);
         await EnsureOk(await PostRaw($"{Base}/API/UserGroups/{groupId}/Members",
             new { memberId = username }, ct), ct);
     }
 
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // USER GROUPS
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     public async Task<List<UserGroup>> GetGroupsAsync(string? filter = null, CancellationToken ct = default)
     {
@@ -382,7 +401,7 @@ public class CyberArkApiService
 
     public async Task<UserGroup> CreateGroupAsync(string name, string description, string location = "\\", CancellationToken ct = default)
     {
-        _log.Information("CreateGroup. Name={Name}", name);
+        _log.Information("CreateGroup requested.");
         return await PostJson<UserGroup>($"{Base}/API/UserGroups",
                    new { groupName = name, description, location }, ct)
                ?? throw new InvalidOperationException("Error al crear grupo.");
@@ -391,18 +410,18 @@ public class CyberArkApiService
     public async Task DeleteGroupAsync(int groupId, CancellationToken ct = default)
     {
         _log.Warning("DeleteGroup. GroupId={Id}", groupId);
-        await EnsureOk(await ExecuteWithRetry(() => _http.DeleteAsync($"{Base}/API/UserGroups/{groupId}", ct), ct), ct);
+        await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.DeleteAsync($"{Base}/API/UserGroups/{groupId}", timeoutToken), ct), ct);
     }
 
     public async Task RemoveGroupMemberAsync(int groupId, string username, CancellationToken ct = default)
     {
-        _log.Information("RemoveGroupMember. GroupId={Group} User={User}", groupId, username);
-        await EnsureOk(await ExecuteWithRetry(() => _http.DeleteAsync($"{Base}/API/UserGroups/{groupId}/Members/{username}", ct), ct), ct);
+        _log.Information("RemoveGroupMember requested. GroupId={Group}", groupId);
+        await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.DeleteAsync($"{Base}/API/UserGroups/{groupId}/Members/{username}", timeoutToken), ct), ct);
     }
 
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // APPLICATIONS
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     public async Task<List<CyberArkApplication>> GetApplicationsAsync(string? appIdFilter = null, CancellationToken ct = default)
     {
@@ -413,7 +432,7 @@ public class CyberArkApiService
 
     public async Task CreateApplicationAsync(CyberArkApplication app, CancellationToken ct = default)
     {
-        _log.Information("CreateApplication. AppId={Id}", app.AppID);
+        _log.Information("CreateApplication requested.");
         await EnsureOk(await PostRaw($"{Base}/WebServices/PIMServices.svc/Applications",
             new { application = app }, ct), ct);
     }
@@ -421,7 +440,7 @@ public class CyberArkApiService
     public async Task DeleteApplicationAsync(string appId, CancellationToken ct = default)
     {
         _log.Warning("DeleteApplication. AppId={Id}", appId);
-        await EnsureOk(await ExecuteWithRetry(() => _http.DeleteAsync($"{Base}/WebServices/PIMServices.svc/Applications/{appId}", ct), ct), ct);
+        await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.DeleteAsync($"{Base}/WebServices/PIMServices.svc/Applications/{appId}", timeoutToken), ct), ct);
     }
 
     public async Task<List<AppAuthMethod>> GetAppAuthMethodsAsync(string appId, CancellationToken ct = default)
@@ -435,11 +454,11 @@ public class CyberArkApiService
             new { authentication = method }, ct), ct);
 
     public async Task DeleteAppAuthMethodAsync(string appId, int methodId, CancellationToken ct = default)
-        => await EnsureOk(await ExecuteWithRetry(() => _http.DeleteAsync($"{Base}/WebServices/PIMServices.svc/Applications/{appId}/Authentications/{methodId}", ct), ct), ct);
+        => await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.DeleteAsync($"{Base}/WebServices/PIMServices.svc/Applications/{appId}/Authentications/{methodId}", timeoutToken), ct), ct);
 
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // PSM SESSIONS & RECORDINGS
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     public async Task<List<PsmSession>> GetActiveSessionsAsync(CancellationToken ct = default)
     {
@@ -462,7 +481,7 @@ public class CyberArkApiService
     public async Task TerminateSessionAsync(string sessionId, CancellationToken ct = default)
     {
         _log.Warning("TerminateSession. SessionId={Id}", sessionId);
-        await EnsureOk(await ExecuteWithRetry(() => _http.DeleteAsync($"{Base}/API/LiveSessions/{sessionId}/Terminate", ct), ct), ct);
+        await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.DeleteAsync($"{Base}/API/LiveSessions/{sessionId}/Terminate", timeoutToken), ct), ct);
     }
 
     public async Task<List<PsmRecording>> GetRecordingsAsync(string? safe = null, CancellationToken ct = default)
@@ -472,9 +491,9 @@ public class CyberArkApiService
         return r?.Recordings ?? new();
     }
 
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // SYSTEM HEALTH
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     public async Task<List<SystemHealthComponent>> GetSystemHealthAsync(CancellationToken ct = default)
     {
@@ -485,9 +504,9 @@ public class CyberArkApiService
     public async Task<SystemHealthComponent?> GetComponentHealthAsync(string componentId, CancellationToken ct = default)
         => await GetJson<SystemHealthComponent>($"{Base}/API/ComponentsMonitoringDetails/{componentId}", ct);
 
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // DISCOVERED ACCOUNTS
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     public async Task<List<DiscoveredAccount>> GetDiscoveredAccountsAsync(string? type = null, string? keyword = null, CancellationToken ct = default)
     {
@@ -516,12 +535,12 @@ public class CyberArkApiService
     public async Task DeleteDiscoveredAccountAsync(string id, CancellationToken ct = default)
     {
         _log.Warning("DeleteDiscoveredAccount. Id={Id}", id);
-        await EnsureOk(await ExecuteWithRetry(() => _http.DeleteAsync($"{Base}/API/DiscoveredAccounts/{id}", ct), ct), ct);
+        await EnsureOk(await ExecuteWithRetry(timeoutToken => _http.DeleteAsync($"{Base}/API/DiscoveredAccounts/{id}", timeoutToken), ct), ct);
     }
 
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // ACCESS REQUESTS (Dual Control)
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     public async Task<List<AccessRequest>> GetMyRequestsAsync(CancellationToken ct = default)
     {
@@ -531,21 +550,21 @@ public class CyberArkApiService
 
     public async Task ConfirmRequestAsync(string accountId, string requestId, string reason, CancellationToken ct = default)
     {
-        _log.Information("ConfirmRequest. AccountId={Account} RequestId={Req} Reason={Reason}", accountId, requestId, reason);
+        _log.Information("ConfirmRequest. AccountId={Account} RequestId={Req}", accountId, requestId);
         await EnsureOk(await PostRaw($"{Base}/API/Accounts/{accountId}/ConfirmCredentialsChange",
             new { Reason = reason, RequestID = requestId }, ct), ct);
     }
 
     public async Task RejectRequestAsync(string accountId, string requestId, string reason, CancellationToken ct = default)
     {
-        _log.Warning("RejectRequest. AccountId={Account} RequestId={Req} Reason={Reason}", accountId, requestId, reason);
+        _log.Warning("RejectRequest. AccountId={Account} RequestId={Req}", accountId, requestId);
         await EnsureOk(await PostRaw($"{Base}/API/Accounts/{accountId}/DenyCredentialsChange",
             new { Reason = reason, RequestID = requestId }, ct), ct);
     }
 
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // BULK OPERATIONS
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     public async Task<BulkUploadResult> BulkCreateAsync(IEnumerable<AccountCreateRequest> accounts,
         IProgress<BulkUploadProgress>? progress = null, CancellationToken ct = default)
@@ -582,7 +601,7 @@ public class CyberArkApiService
                 var current = Interlocked.Increment(ref completed);
                 Interlocked.Increment(ref failed);
                 errors.Add($"[{acc.UserName}@{acc.Address}]: {ex.Message}");
-                _log.Error(ex, "BulkCreate item failed. Account={Account}", $"{acc.UserName}@{acc.Address}");
+                _log.Error(ex, "BulkCreate item failed.");
                 progress?.Report(new BulkUploadProgress
                 {
                     Current = current,
@@ -641,8 +660,8 @@ public class CyberArkApiService
         var failedServers = 0;
         using var gate = new SemaphoreSlim(MaxLinkParallelism);
 
-        _log.Information("LinkSharedAccountByAddress started. Servers={Count} LinkType={Type} AccountName={Name}",
-            normalizedAddresses.Count, linkType, targetName);
+        _log.Information("LinkSharedAccountByAddress started. Servers={Count} LinkType={Type}",
+            normalizedAddresses.Count, linkType);
 
         var tasks = normalizedAddresses.Select(async address =>
         {
@@ -757,27 +776,33 @@ public class CyberArkApiService
         => account.UserName.Equals(targetName, StringComparison.OrdinalIgnoreCase)
            || account.Name.Equals(targetName, StringComparison.OrdinalIgnoreCase);
 
-    // ════════════════════════════════════════════════════════════════════════
-    // PRIVATE HELPERS — HTTP Layer
-    // ════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // PRIVATE HELPERS â€” HTTP Layer
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-    /// <summary>
-    /// Executes an HTTP call through the Polly retry policy with per-request timeout.
-    /// HttpRequestMessage-based calls (Patch/Put) cannot be retried automatically
-    /// because HttpRequestMessage is one-use; callers must pass a factory lambda.
-    /// </summary>
     private async Task<HttpResponseMessage> ExecuteWithRetry(
-        Func<Task<HttpResponseMessage>> action,
+        Func<CancellationToken, Task<HttpResponseMessage>> action,
         CancellationToken ct)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         cts.CancelAfter(DefaultRequestTimeout);
-        return await RetryPolicy.ExecuteAsync(() => action());
+        return await RetryPolicy.ExecuteAsync(timeoutToken => action(timeoutToken), cts.Token);
+    }
+
+    private async Task<HttpResponseMessage> SendWithRetry(
+        Func<HttpRequestMessage> requestFactory,
+        CancellationToken ct)
+    {
+        return await ExecuteWithRetry(async timeoutToken =>
+        {
+            using var request = requestFactory();
+            return await _http.SendAsync(request, timeoutToken);
+        }, ct);
     }
 
     private async Task<T?> GetJson<T>(string url, CancellationToken ct)
     {
-        var r = await ExecuteWithRetry(() => _http.GetAsync(url, ct), ct);
+        var r = await ExecuteWithRetry(timeoutToken => _http.GetAsync(url, timeoutToken), ct);
         await EnsureOk(r, ct);
         return JsonSerializer.Deserialize<T>(await r.Content.ReadAsStringAsync(ct), J);
     }
@@ -791,40 +816,73 @@ public class CyberArkApiService
 
     private async Task<HttpResponseMessage> PostRaw(string url, object body, CancellationToken ct)
     {
-        var content = new StringContent(JsonSerializer.Serialize(body, J), Encoding.UTF8, "application/json");
-        return await ExecuteWithRetry(() => _http.PostAsync(url, content, ct), ct);
+        var payload = JsonSerializer.Serialize(body, J);
+        return await ExecuteWithRetry(
+            timeoutToken => _http.PostAsync(url, new StringContent(payload, Encoding.UTF8, "application/json"), timeoutToken),
+            ct);
     }
 
     private static async Task EnsureOk(HttpResponseMessage r, CancellationToken ct = default)
     {
         if (r.IsSuccessStatusCode) return;
+
         var body = await r.Content.ReadAsStringAsync(ct);
         var code = (int)r.StatusCode;
-        string msg = code switch
+        var message = code switch
         {
-            401 => "No autorizado – token expirado o inválido.",
-            403 => "Acceso denegado – permisos insuficientes.",
+            401 => "No autorizado: token expirado o invalido.",
+            403 => "Acceso denegado: permisos insuficientes.",
             404 => "Recurso no encontrado.",
-            409 => "Conflicto – el recurso ya existe.",
-            _   => ParseApiError(body)
+            409 => "Conflicto: el recurso ya existe.",
+            _ => ParseApiError(body)
         };
-        _log.Error("HTTP error {Code} — {Msg}", code, msg);
-        throw new InvalidOperationException($"[{code}] {msg}");
+
+        _log.Error("HTTP error {Code} during CyberArk API request.", code);
+        throw new InvalidOperationException($"[{code}] {message}");
     }
 
     private static string ParseApiError(string body)
     {
         try
         {
-            using var d = JsonDocument.Parse(body);
-            foreach (var k in new[] { "ErrorMessage", "Details", "message", "error" })
-                if (d.RootElement.TryGetProperty(k, out var v)) return v.GetString() ?? body;
+            using var document = JsonDocument.Parse(body);
+            foreach (var propertyName in new[] { "ErrorMessage", "Details", "message", "error" })
+            {
+                if (document.RootElement.TryGetProperty(propertyName, out var value))
+                {
+                    var candidate = value.GetString();
+                    if (IsSafeServerMessage(candidate))
+                    {
+                        return candidate!;
+                    }
+
+                    break;
+                }
+            }
         }
-        catch { }
-        return body.Length > 250 ? body[..250] : body;
+        catch
+        {
+        }
+
+        return "Error devuelto por el servidor.";
     }
 
-    // ── Nested response DTOs ───────────────────────────────────────────────
+    private static bool IsSafeServerMessage(string? message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            return false;
+        }
+
+        var normalized = message.Trim().ReplaceLineEndings(" ");
+        if (normalized.Length > 160)
+        {
+            return false;
+        }
+
+        return normalized.All(ch => !char.IsControl(ch));
+    }
+    // â”€â”€ Nested response DTOs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private class AccountActivitiesResponse
     {
@@ -835,3 +893,4 @@ public class CyberArkApiService
         [JsonPropertyName("authentication")] public List<AppAuthMethod>? authentication { get; set; }
     }
 }
+

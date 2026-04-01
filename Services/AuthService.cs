@@ -1,6 +1,4 @@
 ﻿using System.Net.Http;
-using System.Runtime.InteropServices;
-using System.Security;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -21,15 +19,13 @@ public class AuthService : IDisposable
     private System.Timers.Timer? _heartbeatTimer;
     private System.Timers.Timer? _hardExpiryTimer;
     private UserSession? _session;
-    private SecureString? _securePassword;
-    private string? _authMethod;
     private int _consecutiveFailures;
     private bool _disposed;
 
     public AuthService(HttpClient http) => _http = http;
 
     public event EventHandler<string>? StatusMessage;
-    public event EventHandler<string>? SessionRenewed;
+    public event EventHandler? SessionRenewed;
     public event EventHandler? SessionExpired;
 
     public UserSession? CurrentSession => _session?.IsActive == true ? _session : null;
@@ -43,13 +39,10 @@ public class AuthService : IDisposable
         CancellationToken ct = default)
     {
         var baseUrl = NormalizeUrl(pvwaUrl);
-        LogContext.Information("Login attempt. User={User} Method={Method} PvwaHost={PvwaHost}", username, authMethod, SanitizeUrl(baseUrl));
+        LogContext.Information("Login attempt. Method={Method} PvwaHost={PvwaHost}", authMethod, SanitizeUrl(baseUrl));
 
         var token = await FetchTokenAsync(baseUrl, username, password, authMethod, ct);
 
-        ClearSecurePassword();
-        _securePassword = ToSecureString(password);
-        _authMethod = authMethod;
         _consecutiveFailures = 0;
 
         _session = new UserSession
@@ -65,7 +58,7 @@ public class AuthService : IDisposable
         ApplyToken(token);
         StartTimers(heartbeatMin);
 
-        LogContext.Information("Session started. User={User} HardExpiry={Expiry}", username, _session.HardExpiry);
+        LogContext.Information("Session started. Method={Method} HardExpiry={Expiry}", authMethod, _session.HardExpiry);
         StatusMessage?.Invoke(this, $"Sesión iniciada: {username}");
         return _session;
     }
@@ -78,12 +71,13 @@ public class AuthService : IDisposable
         var baseUrl = NormalizeUrl(pvwaUrl);
         LogContext.Information("Windows auth attempt. PvwaHost={PvwaHost}", SanitizeUrl(baseUrl));
 
-        var response = await _http.PostAsync($"{baseUrl}/API/auth/Windows/Logon", null, ct);
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(HttpTimeout);
+
+        var response = await _http.PostAsync($"{baseUrl}/API/auth/Windows/Logon", null, timeout.Token);
         await EnsureOk(response, ct);
         var token = (await response.Content.ReadAsStringAsync(ct)).Trim('"');
 
-        ClearSecurePassword();
-        _authMethod = "Windows";
         _consecutiveFailures = 0;
 
         _session = new UserSession
@@ -99,7 +93,7 @@ public class AuthService : IDisposable
         ApplyToken(token);
         StartTimers(heartbeatMin);
 
-        LogContext.Information("Windows session started. User={User}", Environment.UserName);
+        LogContext.Information("Windows session started. PvwaHost={PvwaHost}", SanitizeUrl(baseUrl));
         StatusMessage?.Invoke(this, $"Sesión de Windows iniciada: {Environment.UserName}");
         return _session;
     }
@@ -112,11 +106,13 @@ public class AuthService : IDisposable
             return;
         }
 
-        LogContext.Information("Logging off. User={User}", _session.Username);
+        LogContext.Information("Logging off active session.");
 
         try
         {
-            await _http.PostAsync($"{_session.PvwaUrl}/API/Auth/Logoff", null, ct);
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeout.CancelAfter(HttpTimeout);
+            await _http.PostAsync($"{_session.PvwaUrl}/API/Auth/Logoff", null, timeout.Token);
         }
         catch (Exception ex)
         {
@@ -124,7 +120,6 @@ public class AuthService : IDisposable
         }
 
         _session.Invalidate();
-        ClearSecurePassword();
         _http.DefaultRequestHeaders.Remove("Authorization");
         StatusMessage?.Invoke(this, "Sesión cerrada");
     }
@@ -164,46 +159,25 @@ public class AuthService : IDisposable
 
         if (DateTime.Now >= _session.HardExpiry)
         {
-            LogContext.Warning("Hard session timeout reached during heartbeat. User={User}", _session.Username);
+            LogContext.Warning("Hard session timeout reached during heartbeat.");
             await ExpireSessionAsync();
             return;
         }
 
         try
         {
-            var response = await _http.PostAsync($"{_session.PvwaUrl}/API/Auth/ExtendSession", null);
-            if (response.IsSuccessStatusCode)
-            {
-                _session.LastRenew = DateTime.Now;
-                _consecutiveFailures = 0;
-                SessionRenewed?.Invoke(this, _session.Token);
-                StatusMessage?.Invoke(this, $"Sesión renovada a las {DateTime.Now:HH:mm:ss}");
-                return;
-            }
-
-            if (_securePassword is not null)
-            {
-                var password = FromSecureString(_securePassword);
-                try
-                {
-                    var token = await FetchTokenAsync(_session.PvwaUrl, _session.Username, password, _authMethod ?? "CyberArk");
-                    _session.Token = token;
-                    _session.LastRenew = DateTime.Now;
-                    _consecutiveFailures = 0;
-                    ApplyToken(token);
-                    SessionRenewed?.Invoke(this, token);
-                    StatusMessage?.Invoke(this, $"Token renovado a las {DateTime.Now:HH:mm:ss}");
-                }
-                finally
-                {
-                    password = string.Empty;
-                }
-            }
+            using var timeout = new CancellationTokenSource(HttpTimeout);
+            var response = await _http.PostAsync($"{_session.PvwaUrl}/API/Auth/ExtendSession", null, timeout.Token);
+            await EnsureOk(response);
+            _session.LastRenew = DateTime.Now;
+            _consecutiveFailures = 0;
+            SessionRenewed?.Invoke(this, EventArgs.Empty);
+            StatusMessage?.Invoke(this, $"Sesión renovada a las {DateTime.Now:HH:mm:ss}");
         }
         catch (Exception ex)
         {
             _consecutiveFailures++;
-            LogContext.Warning(ex, "Heartbeat failed ({Current}/{Max}). User={User}", _consecutiveFailures, MaxConsecutiveFailures, _session?.Username);
+            LogContext.Warning(ex, "Heartbeat failed ({Current}/{Max}).", _consecutiveFailures, MaxConsecutiveFailures);
             StatusMessage?.Invoke(this, $"Falló la renovación automática ({_consecutiveFailures}/{MaxConsecutiveFailures})");
 
             if (_consecutiveFailures >= MaxConsecutiveFailures)
@@ -215,7 +189,7 @@ public class AuthService : IDisposable
 
     private void OnHardExpiry(object? sender, ElapsedEventArgs e)
     {
-        LogContext.Warning("Hard session timeout fired. User={User}", _session?.Username);
+        LogContext.Warning("Hard session timeout fired.");
         _ = ExpireSessionAsync();
     }
 
@@ -223,7 +197,6 @@ public class AuthService : IDisposable
     {
         StopTimers();
         _session?.Invalidate();
-        ClearSecurePassword();
         _http.DefaultRequestHeaders.Remove("Authorization");
         SessionExpired?.Invoke(this, EventArgs.Empty);
         StatusMessage?.Invoke(this, "La sesión ha expirado. Vuelve a iniciar sesión.");
@@ -277,41 +250,6 @@ public class AuthService : IDisposable
         _http.DefaultRequestHeaders.Add("Authorization", token);
     }
 
-    private static SecureString ToSecureString(string plainText)
-    {
-        var secureString = new SecureString();
-        foreach (var character in plainText)
-        {
-            secureString.AppendChar(character);
-        }
-
-        secureString.MakeReadOnly();
-        return secureString;
-    }
-
-    private static string FromSecureString(SecureString secureString)
-    {
-        var pointer = IntPtr.Zero;
-        try
-        {
-            pointer = Marshal.SecureStringToGlobalAllocUnicode(secureString);
-            return Marshal.PtrToStringUni(pointer) ?? string.Empty;
-        }
-        finally
-        {
-            if (pointer != IntPtr.Zero)
-            {
-                Marshal.ZeroFreeGlobalAllocUnicode(pointer);
-            }
-        }
-    }
-
-    private void ClearSecurePassword()
-    {
-        _securePassword?.Dispose();
-        _securePassword = null;
-    }
-
     private static async Task EnsureOk(HttpResponseMessage response, CancellationToken ct = default)
     {
         if (response.IsSuccessStatusCode)
@@ -339,14 +277,17 @@ public class AuthService : IDisposable
             using var document = JsonDocument.Parse(body);
             if (document.RootElement.TryGetProperty("ErrorMessage", out var message))
             {
-                return $"{prefix}: {message.GetString()}";
+                var serverMessage = message.GetString();
+                return string.IsNullOrWhiteSpace(serverMessage)
+                    ? $"{prefix}: Error devuelto por el servidor."
+                    : $"{prefix}: {serverMessage}";
             }
         }
         catch
         {
         }
 
-        return $"{prefix}: {(body.Length > 200 ? body[..200] : body)}";
+        return $"{prefix}: Error devuelto por el servidor.";
     }
 
     private static string NormalizeUrl(string url)
@@ -379,7 +320,6 @@ public class AuthService : IDisposable
 
         _disposed = true;
         StopTimers();
-        ClearSecurePassword();
     }
 
     private sealed class LogonRequest

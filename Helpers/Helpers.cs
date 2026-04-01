@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using CyberArkManager.Models;
+using Serilog;
 
 namespace CyberArkManager.Helpers;
 
@@ -103,6 +104,7 @@ public class RelayCommand : ICommand
 
 public class AsyncRelayCommand : ICommand
 {
+    static readonly ILogger LogContext = Log.ForContext<AsyncRelayCommand>();
     readonly Func<object?, Task> _exec;
     readonly Func<object?, bool>? _can;
     bool _busy;
@@ -114,7 +116,12 @@ public class AsyncRelayCommand : ICommand
     {
         if (!CanExecute(p)) return;
         _busy = true; CommandManager.InvalidateRequerySuggested();
-        try { await _exec(p); } catch (Exception ex) { System.Diagnostics.Debug.WriteLine(ex); }
+        try { await _exec(p); }
+        catch (Exception ex)
+        {
+            LogContext.Error(ex, "Unhandled exception in AsyncRelayCommand.");
+            System.Diagnostics.Debug.WriteLine(ex);
+        }
         finally { _busy = false; CommandManager.InvalidateRequerySuggested(); }
     }
     public void Raise() => CommandManager.InvalidateRequerySuggested();

@@ -119,7 +119,13 @@
                             </WrapPanel>
                         </Grid>
 
-                        <DataGrid Grid.Row="2" Height="300"
+                        <CheckBox Grid.Row="2"
+                                  Content="Mostrar contraseñas en pantalla"
+                                  IsChecked="{Binding ShowPasswords}"
+                                  Foreground="#9999BB"
+                                  Margin="0,0,0,8"/>
+
+                        <DataGrid Grid.Row="2" Height="300" Margin="0,28,0,0"
                                   ItemsSource="{Binding AccountProfiles}" SelectedItem="{Binding SelectedProfile}"
                                   AutoGenerateColumns="False" CanUserAddRows="False"
                                   EnableRowVirtualization="True" EnableColumnVirtualization="True"
@@ -133,7 +139,29 @@
                                 <DataGridTextColumn Header="safe" Binding="{Binding SafeName, UpdateSourceTrigger=PropertyChanged}" Width="130"/>
                                 <DataGridTextColumn Header="platformID" Binding="{Binding PlatformId, UpdateSourceTrigger=PropertyChanged}" Width="130"/>
                                 <DataGridTextColumn Header="username" Binding="{Binding UserName, UpdateSourceTrigger=PropertyChanged}" Width="130"/>
-                                <DataGridTextColumn Header="password" Binding="{Binding Password, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
+                                <DataGridTemplateColumn Header="password" Width="120">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <TextBlock Text="{Binding Password}"
+                                                           Visibility="{Binding DataContext.ShowPasswords, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
+                                                <TextBlock Text="{Binding MaskedPassword}"
+                                                           Visibility="{Binding DataContext.ShowPasswords, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InvBoolToVis}}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                    <DataGridTemplateColumn.CellEditingTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
+                                                         Visibility="{Binding DataContext.ShowPasswords, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
+                                                <TextBlock Text="{Binding MaskedPassword}"
+                                                           VerticalAlignment="Center"
+                                                           Visibility="{Binding DataContext.ShowPasswords, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InvBoolToVis}}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellEditingTemplate>
+                                </DataGridTemplateColumn>
                                 <DataGridCheckBoxColumn Header="EnableAutoMgmt" Binding="{Binding AutoManagement, UpdateSourceTrigger=PropertyChanged}" Width="105"/>
                                 <DataGridTextColumn Header="ManualMgmtReason" Binding="{Binding ManualReason, UpdateSourceTrigger=PropertyChanged}" Width="150"/>
                                 <DataGridCheckBoxColumn Header="UseSudoOnReconcile" Binding="{Binding UseSudoOnReconcile, UpdateSourceTrigger=PropertyChanged}" Width="130"/>
@@ -220,6 +248,10 @@
                         <TextBlock Text="Vista previa" FontSize="15" FontWeight="Bold" Foreground="White"/>
                         <TextBlock Text="Vista previa desplazable del CSV final. Las cabeceras exportadas son username,address,safe,platformID,password,EnableAutoMgmt,ManualMgmtReason y UseSudoOnReconcile solo cuando esté activado."
                                    FontSize="10" Foreground="#6666AA" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        <CheckBox Content="Mostrar contraseñas en la vista previa"
+                                  IsChecked="{Binding ShowPasswords}"
+                                  Foreground="#9999BB"
+                                  Margin="0,8,0,0"/>
                     </StackPanel>
 
                     <DataGrid Grid.Row="1" Height="420"
@@ -237,7 +269,29 @@
                             <DataGridTextColumn Header="address" Binding="{Binding Address, UpdateSourceTrigger=PropertyChanged}" Width="180"/>
                             <DataGridTextColumn Header="safe" Binding="{Binding SafeName, UpdateSourceTrigger=PropertyChanged}" Width="140"/>
                             <DataGridTextColumn Header="platformID" Binding="{Binding PlatformId, UpdateSourceTrigger=PropertyChanged}" Width="140"/>
-                            <DataGridTextColumn Header="password" Binding="{Binding Password, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
+                            <DataGridTemplateColumn Header="password" Width="120">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <TextBlock Text="{Binding Password}"
+                                                       Visibility="{Binding DataContext.ShowPasswords, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
+                                            <TextBlock Text="{Binding MaskedPassword}"
+                                                       Visibility="{Binding DataContext.ShowPasswords, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InvBoolToVis}}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
+                                                     Visibility="{Binding DataContext.ShowPasswords, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
+                                            <TextBlock Text="{Binding MaskedPassword}"
+                                                       VerticalAlignment="Center"
+                                                       Visibility="{Binding DataContext.ShowPasswords, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InvBoolToVis}}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
                             <DataGridCheckBoxColumn Header="EnableAutoMgmt" Binding="{Binding AutoManagement, UpdateSourceTrigger=PropertyChanged}" Width="115"/>
                             <DataGridTextColumn Header="ManualMgmtReason" Binding="{Binding ManualReason, UpdateSourceTrigger=PropertyChanged}" Width="170"/>
                             <DataGridCheckBoxColumn Header="UseSudoOnReconcile" Binding="{Binding UseSudoOnReconcile, UpdateSourceTrigger=PropertyChanged}" Width="130"/>

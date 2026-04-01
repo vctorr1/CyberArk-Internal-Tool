@@ -96,7 +96,12 @@
                                 <TextBox Text="{Binding NewUserName,   UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Nombre de usuario *"       md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,8" FontSize="12"/>
                                 <TextBox Text="{Binding NewPlatformId, UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="ID de plataforma *"      md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,8" FontSize="12"/>
                                 <TextBox Text="{Binding NewSafeName,   UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Nombre del safe *"        md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,8" FontSize="12"/>
-                                <PasswordBox md:HintAssist.Hint="Contraseña inicial (opcional)" md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedPasswordBox}" Margin="0,0,0,8"/>
+                                <PasswordBox x:Name="CreateAccountPasswordBox"
+                                             md:HintAssist.Hint="Contraseña inicial (opcional)"
+                                             md:HintAssist.IsFloating="True"
+                                             Style="{StaticResource MaterialDesignOutlinedPasswordBox}"
+                                             PasswordChanged="CreateAccountPasswordChanged"
+                                             Margin="0,0,0,8"/>
                                 <CheckBox Content="Gestión automática CPM" IsChecked="{Binding NewAutoManage}" Foreground="#9999BB" Margin="0,0,0,8"/>
                                 <TextBox Text="{Binding NewManualReason, UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Motivo gestión manual"
                                          Visibility="{Binding NewAutoManage, Converter={StaticResource InvBoolToVis}}"
@@ -168,7 +173,12 @@
 
                                 <!-- Establecer siguiente contraseña -->
                                 <TextBlock Text="ESTABLECER PRÓXIMA CONTRASEÑA" FontSize="9" Foreground="#44446A" FontWeight="Bold" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding NextPassword, UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Nueva contraseña" md:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,6" FontSize="12"/>
+                                <PasswordBox x:Name="NextPasswordBox"
+                                             md:HintAssist.Hint="Nueva contraseña"
+                                             md:HintAssist.IsFloating="True"
+                                             Style="{StaticResource MaterialDesignOutlinedPasswordBox}"
+                                             PasswordChanged="NextPasswordChanged"
+                                             Margin="0,0,0,6" FontSize="12"/>
                                 <CheckBox Content="Cambiar inmediatamente" IsChecked="{Binding ChangeImmediately}" Foreground="#9999BB" FontSize="11" Margin="0,0,0,6"/>
                                 <Button Command="{Binding SetNextPwdCommand}" Height="32" FontSize="10" Margin="0,0,0,12" Style="{StaticResource MaterialDesignOutlinedButton}">
                                     <StackPanel Orientation="Horizontal"><md:PackIcon Kind="KeyPlus" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Establecer siguiente contraseña" VerticalAlignment="Center"/></StackPanel>
@@ -179,10 +189,27 @@
                                 <Button Command="{Binding GetPasswordCommand}" Height="32" FontSize="10" Margin="0,0,0,6" Background="{StaticResource WarnBrush}" BorderBrush="{StaticResource WarnBrush}" Style="{StaticResource MaterialDesignRaisedButton}">
                                     <StackPanel Orientation="Horizontal"><md:PackIcon Kind="Eye" Width="13" Height="13" VerticalAlignment="Center"/><TextBlock Text=" Recuperar contraseña" VerticalAlignment="Center"/></StackPanel>
                                 </Button>
+                                <WrapPanel Margin="0,0,0,6"
+                                           Visibility="{Binding RetrievedPassword, Converter={StaticResource NullToVis}}">
+                                    <CheckBox Content="Mostrar temporalmente"
+                                              IsChecked="{Binding ShowRetrievedPassword}"
+                                              Foreground="#9999BB"
+                                              FontSize="11"
+                                              Margin="0,0,8,0"/>
+                                    <Button Command="{Binding ClearRetrievedPasswordCommand}"
+                                            Height="26"
+                                            FontSize="10"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <md:PackIcon Kind="Close" Width="12" Height="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text=" Borrar" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </WrapPanel>
                                 <Border Background="#1AFF9800" CornerRadius="4" Padding="10,6"
                                         Visibility="{Binding RetrievedPassword, Converter={StaticResource NullToVis}}">
-                                    <TextBox Text="{Binding RetrievedPassword}" IsReadOnly="True" FontFamily="Consolas" FontSize="12"
-                                             Background="Transparent" BorderThickness="0" Foreground="#FF9800" TextWrapping="Wrap"/>
+                                    <TextBox Text="{Binding DisplayedRetrievedPassword, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" FontSize="12"
+                                              Background="Transparent" BorderThickness="0" Foreground="#FF9800" TextWrapping="Wrap"/>
                                 </Border>
 
                                 <!-- Check In / Out -->

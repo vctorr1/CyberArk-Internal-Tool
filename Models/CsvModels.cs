@@ -51,8 +51,21 @@ public class CsvAccountRow : ObservableModel
     public string? Password
     {
         get => _password;
-        set => SetProperty(ref _password, value);
+        set
+        {
+            if (SetProperty(ref _password, value))
+            {
+                OnPropertyChanged(nameof(HasPassword));
+                OnPropertyChanged(nameof(MaskedPassword));
+            }
+        }
     }
+
+    public bool HasPassword => !string.IsNullOrEmpty(_password);
+
+    public string MaskedPassword => string.IsNullOrEmpty(_password)
+        ? string.Empty
+        : new string('•', Math.Max(8, _password.Length));
 
     public string? Description
     {

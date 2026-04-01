@@ -41,6 +41,7 @@ public class CsvGeneratorViewModel : BaseViewModel
     int _accountsPerServer = 5;
     int _rowCount;
     bool _isLinkingAccounts;
+    bool _showPasswords;
     double _linkProgress;
     LinkedAccountTypeOption? _selectedLinkTypeOption;
 
@@ -234,6 +235,7 @@ public class CsvGeneratorViewModel : BaseViewModel
     public double LinkProgress { get => _linkProgress; set => Set(ref _linkProgress, value); }
     public string LastProcessedCsvPath { get => _lastProcessedCsvPath; set => Set(ref _lastProcessedCsvPath, value); }
     public string ProcessedCsvDirectory { get; }
+    public bool ShowPasswords { get => _showPasswords; set => Set(ref _showPasswords, value); }
     public LinkedAccountTypeOption? SelectedLinkTypeOption
     {
         get => _selectedLinkTypeOption;
@@ -343,6 +345,11 @@ public class CsvGeneratorViewModel : BaseViewModel
             return;
         }
 
+        if (!ConfirmPlaintextCsvExport(Rows))
+        {
+            return;
+        }
+
         IsBusy = true;
         RefreshApiCommandState();
         try
@@ -417,6 +424,13 @@ public class CsvGeneratorViewModel : BaseViewModel
         if (SelectedProcessedCsv is null)
         {
             SetStatus("Selecciona una instantánea procesada para exportar.", true);
+            return;
+        }
+
+        if (!_dialogService.Confirm(
+                "Exportación sensible",
+                "La instantánea se exportará en texto plano y puede incluir contraseñas. Guárdala solo en una ubicación segura. ¿Deseas continuar?"))
+        {
             return;
         }
 
@@ -646,7 +660,7 @@ public class CsvGeneratorViewModel : BaseViewModel
         template.Description = TemplateDescription.Trim();
         template.UpdatedAtUtc = DateTime.UtcNow;
         template.AccountsPerServer = AccountsPerServer;
-        template.AccountProfiles = GetActiveAccountProfilesSnapshot().ToList();
+        template.AccountProfiles = GetProfilesForTemplateStorage().ToList();
         template.EnsureConsistency();
 
         if (existing is null)
@@ -832,7 +846,10 @@ public class CsvGeneratorViewModel : BaseViewModel
             return;
         }
 
-        _previewService.ShowPreview(Rows, string.IsNullOrWhiteSpace(TemplateName) ? "Vista previa CSV" : $"Vista previa - {TemplateName}");
+        _previewService.ShowPreview(
+            Rows,
+            string.IsNullOrWhiteSpace(TemplateName) ? "Vista previa CSV" : $"Vista previa - {TemplateName}",
+            ShowPasswords);
     }
 
     void ReplaceRows(IEnumerable<CsvAccountRow> rows)
@@ -914,6 +931,15 @@ public class CsvGeneratorViewModel : BaseViewModel
         return snapshot;
     }
 
+    IReadOnlyList<CsvAccountRow> GetProfilesForTemplateStorage()
+        => GetActiveAccountProfilesSnapshot()
+            .Select(profile =>
+            {
+                profile.Password = null;
+                return profile;
+            })
+            .ToList();
+
     bool ValidateRowsForOutput()
     {
         var errors = CsvService.Validate(Rows);
@@ -924,6 +950,18 @@ public class CsvGeneratorViewModel : BaseViewModel
 
         _dialogService.ShowMessage("Validación", string.Join(Environment.NewLine, errors), DialogSeverity.Warning);
         return false;
+    }
+
+    bool ConfirmPlaintextCsvExport(IEnumerable<CsvAccountRow> rows)
+    {
+        if (!rows.Any(row => row.HasPassword))
+        {
+            return true;
+        }
+
+        return _dialogService.Confirm(
+            "Exportación sensible",
+            "El CSV se exportará en texto plano y puede incluir contraseñas. Guárdalo solo en una ubicación segura. ¿Deseas continuar?");
     }
 
     void AttachRowsCollection(ObservableCollection<CsvAccountRow> rows) => rows.CollectionChanged += OnRowsChanged;

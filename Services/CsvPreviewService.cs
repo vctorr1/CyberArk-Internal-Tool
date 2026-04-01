@@ -7,7 +7,7 @@ namespace CyberArkManager.Services;
 
 public class CsvPreviewService
 {
-    public void ShowPreview(IEnumerable<CsvAccountRow> rows, string title)
+    public void ShowPreview(IEnumerable<CsvAccountRow> rows, string title, bool showPasswords = false)
     {
         var snapshot = rows
             .Select((row, index) =>
@@ -18,7 +18,7 @@ public class CsvPreviewService
             })
             .ToList();
 
-        var viewModel = new CsvPreviewWindowViewModel(snapshot, title);
+        var viewModel = new CsvPreviewWindowViewModel(snapshot, title, showPasswords);
         var window = new CsvPreviewWindow
         {
             DataContext = viewModel,

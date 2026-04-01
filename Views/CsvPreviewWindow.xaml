@@ -18,6 +18,10 @@
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding Title}" FontSize="18" FontWeight="Bold" Foreground="White"/>
                 <TextBlock Text="{Binding RowCount, StringFormat=' - {0} filas'}" FontSize="12" Foreground="#9FE8F2" Margin="8,4,0,0"/>
+                <CheckBox Content="Mostrar contraseñas"
+                          IsChecked="{Binding ShowPasswords}"
+                          Foreground="#9999BB"
+                          Margin="18,2,0,0"/>
             </StackPanel>
         </Border>
 
@@ -42,7 +46,18 @@
                     <DataGridTextColumn Header="address" Binding="{Binding Address}" Width="180"/>
                     <DataGridTextColumn Header="safe" Binding="{Binding SafeName}" Width="140"/>
                     <DataGridTextColumn Header="platformID" Binding="{Binding PlatformId}" Width="140"/>
-                    <DataGridTextColumn Header="password" Binding="{Binding Password}" Width="120"/>
+                    <DataGridTemplateColumn Header="password" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <TextBlock Text="{Binding Password}"
+                                               Visibility="{Binding DataContext.ShowPasswords, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"/>
+                                    <TextBlock Text="{Binding MaskedPassword}"
+                                               Visibility="{Binding DataContext.ShowPasswords, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InvBoolToVis}}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridCheckBoxColumn Header="EnableAutoMgmt" Binding="{Binding AutoManagement}" Width="110"/>
                     <DataGridTextColumn Header="ManualMgmtReason" Binding="{Binding ManualReason}" Width="170"/>
                     <DataGridCheckBoxColumn Header="UseSudoOnReconcile" Binding="{Binding UseSudoOnReconcile}" Width="140"/>
